@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="zh-CN" data-ui="amatlas-dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>承星者：第一个世界</title>
+<link rel="stylesheet" href="../../ui/amatlas-skins.css">
+<style>
+  html[data-ui="amatlas-dark"] {
+    --amatlas-bg: #0b1220;
+    --amatlas-bg-soft: #0f1829;
+    --amatlas-panel: #121c30;
+    --amatlas-panel-2: #16233a;
+    --amatlas-ink: #e8ecf4;
+    --amatlas-muted: #9fb0c6;
+    --amatlas-accent: #c8a24a;
+    --amatlas-accent-2: #e6cd86;
+    --amatlas-line: rgba(200, 162, 74, .38);
+    --amatlas-danger: #ca746b;
+    --amatlas-shadow: rgba(0, 0, 0, .62);
+    --amatlas-radius: 4px;
+    --amatlas-ui-font: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --amatlas-body-font: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --amatlas-body-bg: #0b1220;
+  }
+
+  body {
+    position: relative;
+    min-width: 0;
+    min-height: 100dvh;
+    background:
+      radial-gradient(1.4px 1.4px at 12% 18%, rgba(242, 233, 207, .88) 50%, transparent 54%),
+      radial-gradient(1px 1px at 79% 13%, rgba(207, 224, 255, .72) 50%, transparent 54%),
+      radial-gradient(1.2px 1.2px at 34% 42%, rgba(230, 205, 134, .65) 50%, transparent 54%),
+      radial-gradient(1px 1px at 91% 48%, rgba(242, 233, 207, .58) 50%, transparent 54%),
+      radial-gradient(1.5px 1.5px at 66% 69%, rgba(207, 224, 255, .58) 50%, transparent 54%),
+      radial-gradient(1px 1px at 21% 83%, rgba(230, 205, 134, .54) 50%, transparent 54%),
+      radial-gradient(980px 620px at 50% -8%, rgba(40, 64, 104, .56), transparent 64%),
+      radial-gradient(720px 580px at 86% 16%, rgba(95, 138, 125, .08), transparent 62%),
+      radial-gradient(1100px 760px at 50% 118%, rgba(7, 11, 20, .92), transparent 66%),
+      #0b1220;
+    background-attachment: fixed;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: .22;
+    background:
+      linear-gradient(rgba(200, 162, 74, .08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200, 162, 74, .06) 1px, transparent 1px);
+    background-size: 96px 96px;
+    -webkit-mask-image: radial-gradient(circle at 50% 18%, #000 0, transparent 72%);
+    mask-image: radial-gradient(circle at 50% 18%, #000 0, transparent 72%);
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 42%, rgba(7, 11, 20, .56) 100%);
+  }
+
+  #app {
+    position: relative;
+    z-index: 1;
+    width: min(calc(100% - 32px), 780px);
+    max-width: none;
+    min-height: calc(100dvh - 32px);
+    margin: 16px auto;
+    padding: 26px 28px 30px;
+    overflow: hidden;
+    border: 1px solid rgba(200, 162, 74, .55);
+    border-radius: 4px;
+    background:
+      radial-gradient(130% 72% at 50% 0%, rgba(230, 205, 134, .055), transparent 56%),
+      radial-gradient(100% 92% at 50% 116%, rgba(7, 11, 20, .64), transparent 68%),
+      linear-gradient(180deg, rgba(18, 28, 48, .97), rgba(12, 20, 35, .98));
+    box-shadow:
+      0 28px 70px -28px rgba(0, 0, 0, .88),
+      inset 0 0 0 1px rgba(230, 205, 134, .07),
+      inset 0 0 52px rgba(7, 11, 20, .46);
+  }
+
+  #app::before {
+    content: '';
+    position: absolute;
+    inset: 7px;
+    z-index: 0;
+    pointer-events: none;
+    border: 1px solid rgba(200, 162, 74, .17);
+    background:
+      linear-gradient(#c8a24a, #c8a24a) left top / 28px 1px no-repeat,
+      linear-gradient(#c8a24a, #c8a24a) left top / 1px 28px no-repeat,
+      linear-gradient(#c8a24a, #c8a24a) right top / 28px 1px no-repeat,
+      linear-gradient(#c8a24a, #c8a24a) right top / 1px 28px no-repeat,
+      linear-gradient(#c8a24a, #c8a24a) left bottom / 28px 1px no-repeat,
+      linear-gradient(#c8a24a, #c8a24a) left bottom / 1px 28px no-repeat,
+      linear-gradient(#c8a24a, #c8a24a) right bottom / 28px 1px no-repeat,
+      linear-gradient(#c8a24a, #c8a24a) right bottom / 1px 28px no-repeat;
+    opacity: .72;
+  }
+
+  #app::after {
+    content: '✦';
+    position: absolute;
+    top: 2px;
+    left: 50%;
+    z-index: 2;
+    padding: 0 9px;
+    color: #e6cd86;
+    background: #121c30;
+    font-size: 13px;
+    line-height: 1;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+
+  #app > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  #plugin-bar {
+    justify-content: flex-end;
+    gap: 7px;
+    min-height: 44px;
+    margin: 0 0 10px;
+    align-items: center;
+  }
+
+  #mapname {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 2px 0 5px;
+    color: var(--amatlas-accent);
+    font-family: Georgia, "Times New Roman", "Songti SC", serif;
+    font-size: 11px;
+    letter-spacing: .28em;
+    text-align: center;
+    text-transform: uppercase;
+    opacity: .9;
+  }
+
+  #mapname::before,
+  #mapname::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(200, 162, 74, .58));
+  }
+
+  #mapname::after {
+    background: linear-gradient(90deg, rgba(200, 162, 74, .58), transparent);
+  }
+
+  #place {
+    margin: 0 0 16px;
+    color: var(--amatlas-accent-2);
+    font-family: Georgia, "Times New Roman", "Songti SC", serif;
+    font-size: 27px;
+    font-weight: 600;
+    letter-spacing: .09em;
+    line-height: 1.32;
+    text-align: center;
+    text-shadow: 0 0 22px rgba(230, 205, 134, .16);
+  }
+
+  #scene {
+    position: relative;
+    width: min(100%, 640px);
+    aspect-ratio: 16 / 9;
+    min-height: 0;
+    max-height: none;
+    margin: 0 auto 18px;
+    border: 1px solid rgba(200, 162, 74, .58);
+    border-radius: 2px;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 38%, rgba(40, 64, 104, .32), transparent 52%),
+      #070b14;
+    box-shadow:
+      0 14px 36px -20px rgba(0, 0, 0, .9),
+      0 0 0 4px rgba(7, 11, 20, .9),
+      0 0 0 5px rgba(200, 162, 74, .22),
+      inset 0 0 34px rgba(7, 11, 20, .5);
+  }
+
+  #scene::after,
+  #maze3d-stage::after {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    z-index: 3;
+    pointer-events: none;
+    background:
+      linear-gradient(#e6cd86, #e6cd86) left top / 22px 1px no-repeat,
+      linear-gradient(#e6cd86, #e6cd86) left top / 1px 22px no-repeat,
+      linear-gradient(#e6cd86, #e6cd86) right top / 22px 1px no-repeat,
+      linear-gradient(#e6cd86, #e6cd86) right top / 1px 22px no-repeat,
+      linear-gradient(#e6cd86, #e6cd86) left bottom / 22px 1px no-repeat,
+      linear-gradient(#e6cd86, #e6cd86) left bottom / 1px 22px no-repeat,
+      linear-gradient(#e6cd86, #e6cd86) right bottom / 22px 1px no-repeat,
+      linear-gradient(#e6cd86, #e6cd86) right bottom / 1px 22px no-repeat;
+    opacity: .72;
+  }
+
+  #scene svg {
+    position: relative;
+    z-index: 1;
+  }
+
+  #maze3d-stage {
+    display: none;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    max-height: 350px;
+    margin: 8px 0 18px;
+    overflow: hidden;
+    border: 1px solid rgba(200, 162, 74, .58);
+    border-radius: 2px;
+    background: #070b14;
+    box-shadow:
+      0 0 0 4px rgba(7, 11, 20, .9),
+      0 0 0 5px rgba(200, 162, 74, .22),
+      inset 0 0 38px rgba(200, 162, 74, .06);
+  }
+
+  #maze3d-stage:not(:empty) {
+    display: block;
+  }
+
+  #maze3d-stage canvas {
+    display: block;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+  }
+
+  html[data-node-kind="maze3d"] #scene:empty {
+    display: none;
+  }
+
+  html[data-node-kind="maze3d"] #look {
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  #look {
+    position: relative;
+    margin: 0;
+    padding: 15px 6px 6px;
+    border-top: 1px solid rgba(200, 162, 74, .25);
+    color: var(--amatlas-ink);
+    font-size: 16px;
+    line-height: 1.8;
+  }
+
+  #look::before {
+    content: '✧';
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    padding: 0 9px;
+    color: var(--amatlas-accent);
+    background: #101a2c;
+    font-family: Georgia, serif;
+    font-size: 13px;
+    line-height: 20px;
+    transform: translateX(-50%);
+  }
+
+  #look > .line {
+    margin: 6px 0;
+  }
+
+  #look .event {
+    border-left: 2px solid var(--amatlas-accent);
+    background: linear-gradient(90deg, rgba(200, 162, 74, .09), transparent 72%);
+    color: var(--amatlas-accent-2);
+  }
+
+  #choices {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 9px;
+    margin-top: 18px;
+  }
+
+  .choice,
+  .amatlas-plugin-btn {
+    border: 1px solid rgba(200, 162, 74, .42);
+    border-radius: 3px;
+    background:
+      radial-gradient(120% 140% at 100% 0%, rgba(230, 205, 134, .055), transparent 46%),
+      linear-gradient(180deg, rgba(22, 35, 58, .98), rgba(15, 24, 41, .98));
+    color: var(--amatlas-ink);
+    box-shadow: inset 0 1px 0 rgba(230, 205, 134, .06);
+  }
+
+  .choice {
+    position: relative;
+    min-height: 50px;
+    padding: 13px 16px 13px 42px;
+    text-align: left;
+  }
+
+  .choice::before {
+    content: '✦';
+    position: absolute;
+    left: 16px;
+    color: var(--amatlas-accent);
+  }
+
+  .choice.move::before {
+    content: '✧';
+    color: var(--amatlas-accent);
+  }
+
+  .choice:not(.locked):hover,
+  .amatlas-plugin-btn:hover {
+    border-color: var(--amatlas-accent-2);
+    background:
+      radial-gradient(120% 140% at 100% 0%, rgba(230, 205, 134, .1), transparent 48%),
+      linear-gradient(180deg, rgba(26, 41, 68, .99), rgba(17, 27, 46, .99));
+    color: var(--amatlas-accent-2);
+  }
+
+  .choice.locked {
+    border-style: dashed;
+  }
+
+  .choice:focus-visible,
+  .amatlas-plugin-btn:focus-visible,
+  .amatlas-plugin-close:focus-visible,
+  .amatlas-save-code:focus-visible {
+    outline: 2px solid var(--amatlas-accent-2);
+    outline-offset: 3px;
+  }
+
+  .line-check {
+    border-left: 2px solid var(--amatlas-accent);
+    background: linear-gradient(90deg, rgba(200, 162, 74, .08), transparent 70%);
+    padding-left: 12px;
+  }
+
+  .line-outcome {
+    border-left: 2px solid var(--amatlas-accent-2);
+    background: linear-gradient(90deg, rgba(230, 205, 134, .08), transparent 70%);
+    padding-left: 12px;
+  }
+
+  #status {
+    gap: 7px 14px;
+    margin-top: 25px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(200, 162, 74, .3);
+    color: var(--amatlas-muted);
+  }
+
+  #status::before {
+    content: '✦';
+    color: var(--amatlas-accent);
+  }
+
+  #status b {
+    color: var(--amatlas-accent-2);
+    font-family: Georgia, "Times New Roman", "Songti SC", serif;
+    font-weight: 600;
+  }
+
+  .amatlas-plugin-btn {
+    min-height: 42px;
+    padding: 8px 13px;
+    font-family: Georgia, "Times New Roman", "Songti SC", serif;
+    letter-spacing: .06em;
+  }
+
+  #plugin-minimap {
+    border: 1px solid rgba(200, 162, 74, .58);
+    border-radius: 2px;
+    background: rgba(18, 28, 48, .97);
+    box-shadow:
+      0 14px 36px rgba(0, 0, 0, .5),
+      inset 0 0 0 3px rgba(7, 11, 20, .72),
+      inset 0 0 0 4px rgba(200, 162, 74, .14);
+  }
+
+  .amatlas-plugin-panel {
+    border: 1px solid rgba(200, 162, 74, .58);
+    border-radius: 4px;
+    background:
+      radial-gradient(120% 80% at 50% 0%, rgba(230, 205, 134, .06), transparent 54%),
+      #121c30;
+    box-shadow:
+      0 30px 80px rgba(0, 0, 0, .72),
+      inset 0 0 0 4px rgba(7, 11, 20, .55),
+      inset 0 0 0 5px rgba(200, 162, 74, .14);
+  }
+
+  .amatlas-plugin-panel::before {
+    background: rgba(7, 11, 20, .78);
+    backdrop-filter: none;
+  }
+
+  .amatlas-plugin-close {
+    color: var(--amatlas-accent-2);
+    border-radius: 2px;
+  }
+
+  .amatlas-ach-head,
+  .amatlas-save-head {
+    color: var(--amatlas-accent-2);
+    border-bottom-color: rgba(200, 162, 74, .38);
+    font-family: Georgia, "Times New Roman", "Songti SC", serif;
+    letter-spacing: .12em;
+  }
+
+  .amatlas-ach-item,
+  .amatlas-save-row {
+    border-color: rgba(200, 162, 74, .28);
+    border-radius: 3px;
+    background: #0f1829;
+  }
+
+  .amatlas-save-row:hover,
+  .amatlas-ach-item.got {
+    border-color: var(--amatlas-accent);
+  }
+
+  .amatlas-save-code {
+    border-color: rgba(200, 162, 74, .38);
+    border-radius: 2px;
+    background: #070b14;
+    color: var(--amatlas-ink);
+  }
+
+  .amatlas-save-io {
+    border-top-color: rgba(200, 162, 74, .3);
+  }
+
+  html[data-node-kind="cutscene"] #app {
+    width: min(calc(100% - 16px), 920px);
+    background:
+      radial-gradient(110% 78% at 50% 0%, rgba(230, 205, 134, .055), transparent 58%),
+      linear-gradient(180deg, rgba(15, 24, 41, .99), rgba(7, 11, 20, .99));
+    border-color: rgba(200, 162, 74, .5);
+    box-shadow: 0 28px 72px -28px rgba(0, 0, 0, .92);
+  }
+
+  html[data-node-kind="cutscene"] #scene {
+    width: min(100%, 640px);
+    aspect-ratio: 16 / 9;
+    max-height: none;
+  }
+
+  html[data-node-kind="cutscene"] #look {
+    max-width: 760px;
+    margin-inline: auto;
+    text-align: center;
+    color: var(--amatlas-ink);
+  }
+
+  html[data-node-kind="cutscene"] #choices {
+    width: min(100%, 760px);
+    margin-inline: auto;
+  }
+
+  html[data-node-kind="cutscene"] .choice:not(.move) {
+    width: 72px;
+    min-height: 44px;
+    padding: 8px;
+    justify-self: center;
+    text-align: center;
+  }
+
+  html[data-node-kind="cutscene"] .choice:not(.move)::before {
+    content: '';
+  }
+
+  @media (max-width: 900px) {
+    #plugin-minimap {
+      position: relative;
+      z-index: 1;
+      width: 132px;
+      height: 104px;
+      margin: 12px auto;
+    }
+  }
+
+  @media (max-width: 600px) {
+    #app,
+    html[data-node-kind="cutscene"] #app {
+      width: 100%;
+      min-height: 100dvh;
+      margin: 0;
+      padding: 18px 12px calc(22px + env(safe-area-inset-bottom));
+      border-left: 0;
+      border-right: 0;
+      border-radius: 0;
+    }
+
+    #app::before {
+      inset: 5px 0;
+      border-left: 0;
+      border-right: 0;
+    }
+
+    #plugin-bar {
+      justify-content: center;
+      min-height: 42px;
+      flex-wrap: wrap;
+    }
+
+    #place {
+      font-size: 22px;
+      letter-spacing: .06em;
+    }
+
+    #scene,
+    html[data-node-kind="cutscene"] #scene {
+      width: min(100%, 520px);
+      aspect-ratio: 16 / 9;
+      min-height: 0;
+      max-height: none;
+    }
+
+    #maze3d-stage {
+      aspect-ratio: 16 / 10;
+      max-height: min(340px, 48dvh);
+      margin-block: 6px 10px;
+    }
+
+    #look {
+      font-size: 15px;
+      line-height: 1.72;
+      padding-inline: 3px;
+    }
+
+    .choice {
+      padding-right: 12px;
+    }
+
+  }
+
+  @media (max-height: 680px) and (min-width: 420px) {
+    #app,
+    html[data-node-kind="cutscene"] #app {
+      margin-top: 0;
+      padding-top: 14px;
+    }
+
+    #scene,
+    html[data-node-kind="cutscene"] #scene {
+      width: min(100%, 360px);
+      min-height: 0;
+      max-height: none;
+    }
+
+    #maze3d-stage {
+      aspect-ratio: 16 / 9;
+      max-height: 300px;
+    }
+
+    #place {
+      margin-bottom: 6px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+<main id="app">
+  <div id="plugin-bar"></div>
+  <div id="mapname"></div>
+  <h1 id="place"></h1>
+  <div id="maze3d-stage"></div>
+  <div id="scene"></div>
+  <div id="look"></div>
+  <div id="choices"></div>
+  <div id="status"></div>
+</main>
+<div id="plugin-minimap"></div>
+<div id="plugin-overlay"></div>
+
+<script src="../../core/runtime/engine-core.js"></script>
+<script src="raycast-maze.js"></script>
+<script src="../../modules/text-adventure/runtime/renderer.js"></script>
+<script src="../../modules/tabletop/runtime/tabletop.js"></script>
+<script src="../../modules/cutscene/runtime/cutscene.js"></script>
+<script src="../../presenters/present-dom.js"></script>
+<script src="../../presenters/present-svg.js"></script>
+<script src="../../presenters/progressions.js"></script>
+<script src="../../presenters/compose-music.js"></script>
+<script src="../../presenters/present-audio.js"></script>
+<script src="../../plugins/save.js"></script>
+<script src="../../plugins/minimap.js"></script>
+<script src="../../plugins/achievement.js"></script>
+<script src="../../plugins/reset.js"></script>
+<script src="world.js"></script>
+<script src="../../preset/boot.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh" data-ui="amatlas-dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Amatlas 文字冒险 demo · 黑沙滩</title>
+<!--
+  Amatlas 文字冒险 demo(文字冒险模块 + S8.5 可插拔表现层/能力插件)。模块化源码:核心 + 模块渲染器 +
+  文字/SVG/音频三呈现器 + 存档/小地图/成就三能力插件 + 世界数据 + 启动胶水。
+  game.js 用 Amatlas.boot(WORLD, manifest) 声明式装配:按内置 kind(scene) 自动拉文字冒险模块,按 manifest 挂呈现器/能力插件;
+  注释 manifest 任一项即关掉对应能力。底层 createEngine + engine.use 仍可用,手写对照见 horror-demo。
+  开发期:双击本文件即玩(浏览器按相对路径加载同级/上级脚本)。
+  发布期:构建器把这些 <script src> 与共享 CSS 内联成单个 all-in-one HTML(离线双击、无服务器)。
+-->
+<link rel="stylesheet" href="../../ui/amatlas-skins.css">
+</head>
+<body>
+<main id="app">
+  <div id="plugin-bar"></div>      <!-- S8.5:存档💾/地图🗺️/成就🏆 工具栏(放 #app 顶部=常驻控件惯例;别放最底)-->
+  <div id="mapname"></div>
+  <h1 id="place"></h1>
+  <div id="scene"></div>           <!-- S8.5:SVG 场景呈现器插槽(不挂 SVG 则空、退化为纯文字)-->
+  <div id="look"></div>
+  <div id="choices"></div>
+  <div id="status"></div>
+</main>
+<!-- ↻ 重新开始:由 manifest.reset:true → ResetPlugin 自动挂进 #plugin-bar(统一工具栏);不再手写 reset 控件 -->
+<div id="plugin-minimap"></div>     <!-- S8.5:小地图插件插槽 -->
+<div id="plugin-overlay"></div>     <!-- S8.5:成就插件插槽(解锁弹窗)-->
+
+<script src="../../core/runtime/engine-core.js"></script>
+<script src="../../modules/text-adventure/runtime/renderer.js"></script>
+<script src="../../presenters/present-dom.js"></script>
+<!-- S8.5 可插拔表现层 + 能力插件(注释任一行即关闭对应能力)-->
+<script src="../../presenters/present-svg.js"></script>
+<script src="../../presenters/progressions.js"></script>
+<script src="../../presenters/compose-music.js"></script>
+<script src="../../presenters/present-audio.js"></script>
+<script src="../../plugins/save.js"></script>
+<script src="../../plugins/minimap.js"></script>
+<script src="../../plugins/achievement.js"></script>
+<script src="../../plugins/reset.js"></script>
+<script src="world.js"></script>
+<script src="../../preset/boot.js"></script>   <!-- S12:pit-of-success 默认装配(game.js 用 Amatlas.boot 声明 manifest)-->
+<script src="game.js"></script>
+</body>
+</html>

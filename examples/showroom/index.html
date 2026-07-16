@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Amatlas Embedded Gallery</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --void: #070b12;
+      --field: #0b121d;
+      --plate: #101a28;
+      --plate-hi: #152235;
+      --ink: #edf3f8;
+      --muted: #98a9ba;
+      --line: rgba(184, 207, 226, .16);
+      --line-hi: rgba(184, 207, 226, .34);
+      --cyan: #83cde8;
+      --violet: #b9a4e9;
+      --green: #8fd0ab;
+      --amber: #d8b66d;
+      --display: Georgia, "Times New Roman", serif;
+      --body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 14% -8%, rgba(73, 112, 151, .28), transparent 32rem),
+        linear-gradient(rgba(131, 205, 232, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(131, 205, 232, .035) 1px, transparent 1px),
+        var(--void);
+      background-size: auto, 32px 32px, 32px 32px, auto;
+      font: 15px/1.62 var(--body);
+    }
+    button, iframe { font: inherit; }
+    button:focus-visible, a:focus-visible, iframe:focus-visible {
+      outline: 3px solid var(--cyan);
+      outline-offset: 3px;
+    }
+    .masthead {
+      padding: 34px clamp(18px, 5vw, 64px) 24px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(7, 11, 18, .96), rgba(7, 11, 18, .72));
+    }
+    .masthead-inner { max-width: 1180px; margin: 0 auto; }
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--cyan);
+      font: 600 11px/1.4 var(--mono);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      font: 500 clamp(32px, 5vw, 58px)/1.05 var(--display);
+      letter-spacing: .02em;
+    }
+    .lede { max-width: 850px; margin: 12px 0 0; color: var(--muted); }
+    .route {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .route a {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 12px;
+      color: var(--ink);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: rgba(16, 26, 40, .72);
+      font-size: 13px;
+    }
+    .route a:hover { border-color: var(--line-hi); background: var(--plate-hi); }
+    main { max-width: 1280px; margin: 0 auto; padding: 34px clamp(18px, 5vw, 64px) 64px; }
+    .catalog-section {
+      --section-accent: var(--cyan);
+      position: relative;
+      margin: 0 0 42px;
+      padding-left: 34px;
+    }
+    .catalog-section::before {
+      content: "";
+      position: absolute;
+      left: 7px;
+      top: 9px;
+      bottom: -44px;
+      width: 1px;
+      background: linear-gradient(var(--section-accent), rgba(184, 207, 226, .08));
+    }
+    .catalog-section:last-of-type::before { bottom: 0; }
+    .catalog-section::after {
+      content: "";
+      position: absolute;
+      left: 2px;
+      top: 7px;
+      width: 11px;
+      height: 11px;
+      border: 1px solid var(--section-accent);
+      background: var(--void);
+      transform: rotate(45deg);
+    }
+    .catalog-section.maze { --section-accent: var(--violet); }
+    .catalog-section.refs { --section-accent: var(--green); }
+    .catalog-section.dogfood { --section-accent: var(--amber); }
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: end;
+      margin-bottom: 16px;
+    }
+    .section-head h2 { margin: 0; font: 500 clamp(22px, 3vw, 30px)/1.2 var(--display); }
+    .section-head p { max-width: 760px; margin: 6px 0 0; color: var(--muted); }
+    .section-count {
+      color: var(--section-accent);
+      font: 600 11px/1 var(--mono);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
+      gap: 14px;
+    }
+    .launch-card {
+      position: relative;
+      width: 100%;
+      min-height: 230px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+      padding: 18px;
+      overflow: hidden;
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background:
+        linear-gradient(135deg, transparent 0 16px, rgba(255, 255, 255, .025) 16px 17px, transparent 17px),
+        linear-gradient(180deg, var(--plate), #0c1420);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, .2);
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .launch-card::before, .launch-card::after {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      pointer-events: none;
+    }
+    .launch-card::before { top: 7px; left: 7px; border-top: 1px solid var(--section-accent); border-left: 1px solid var(--section-accent); }
+    .launch-card::after { right: 7px; bottom: 7px; border-right: 1px solid var(--section-accent); border-bottom: 1px solid var(--section-accent); }
+    .launch-card:hover:not(:disabled) { transform: translateY(-3px); border-color: var(--section-accent); background-color: var(--plate-hi); }
+    .launch-card:disabled { cursor: not-allowed; opacity: .56; }
+    .card-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .card-kind {
+      color: var(--section-accent);
+      font: 600 10px/1.4 var(--mono);
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    .card-mark { color: var(--muted); font: 11px/1 var(--mono); }
+    .launch-card h3 { margin: 2px 0 0; font: 500 21px/1.2 var(--display); }
+    .launch-card p { margin: 0; color: var(--muted); }
+    .card-path {
+      margin-top: auto;
+      color: #d9c68e;
+      font: 11px/1.45 var(--mono);
+      word-break: break-all;
+    }
+    .card-action {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 9px;
+      border-top: 1px solid var(--line);
+      color: var(--ink);
+      font-weight: 650;
+    }
+    .card-action::after { content: "↗"; color: var(--section-accent); font-size: 17px; }
+    .catalog-note {
+      margin: 8px 0 0 34px;
+      padding: 14px 16px;
+      color: var(--muted);
+      border-left: 2px solid var(--amber);
+      background: rgba(216, 182, 109, .06);
+    }
+    .catalog-note strong { color: var(--ink); }
+    noscript { display: block; margin: 16px; padding: 14px; color: #ffdca0; border: 1px solid var(--amber); }
+
+    .demoport {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity .22s ease, visibility 0s linear .22s;
+    }
+    .demoport.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity .22s ease, visibility 0s;
+    }
+    .demoport[hidden] { display: none; }
+    .demoport-scrim {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 42%, rgba(10, 20, 32, .82), rgba(3, 6, 11, .96));
+      cursor: pointer;
+    }
+    .demoport-panel {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: min(1080px, 94vw);
+      height: min(86vh, 760px);
+      height: min(86svh, 760px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translate(-50%, -50%) scale(.975);
+      border: 1px solid var(--cyan);
+      border-radius: 8px;
+      background: #0b111b;
+      box-shadow: 0 0 0 6px rgba(7, 11, 18, .82), 0 36px 100px rgba(0, 0, 0, .72);
+      transition: transform .24s ease;
+    }
+    .demoport.open .demoport-panel { transform: translate(-50%, -50%) scale(1); }
+    .demoport-bar {
+      flex: none;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 4px 6px 4px 14px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(131, 205, 232, .08), rgba(7, 11, 18, .7));
+    }
+    .demoport-heading { min-width: 0; }
+    .demoport-kind {
+      display: block;
+      color: var(--cyan);
+      font: 600 9px/1.3 var(--mono);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .demoport-title {
+      display: block;
+      overflow: hidden;
+      color: var(--ink);
+      font: 500 15px/1.35 var(--display);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .demoport-close {
+      width: 44px;
+      height: 44px;
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink);
+      cursor: pointer;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: rgba(7, 11, 18, .76);
+      font-size: 18px;
+    }
+    .demoport-close:hover { border-color: var(--cyan); background: var(--plate); }
+    .demoport-frame { flex: 1 1 auto; width: 100%; min-height: 0; display: block; border: 0; background: #0b111b; }
+    .demoport-frame:focus { outline: 3px solid var(--cyan); outline-offset: -3px; }
+
+    @media (max-width: 700px) {
+      .masthead { padding-top: 24px; }
+      main { padding-top: 28px; }
+      .catalog-section { padding-left: 24px; }
+      .catalog-section::before { left: 4px; }
+      .catalog-section::after { left: -1px; }
+      .section-head { grid-template-columns: 1fr; gap: 6px; }
+      .section-count { order: -1; }
+      .catalog-note { margin-left: 24px; }
+      .demoport-panel, .demoport.open .demoport-panel {
+        left: 8px;
+        right: 8px;
+        top: 8px;
+        bottom: 8px;
+        width: auto;
+        height: auto;
+        transform: none;
+      }
+    }
+    @media (max-width: 440px) {
+      .route { display: grid; grid-template-columns: 1fr 1fr; }
+      .route a { justify-content: center; text-align: center; }
+      .launch-card { min-height: 214px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .launch-card, .demoport, .demoport-panel { transition: none; }
+      .launch-card:hover:not(:disabled) { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <p class="eyebrow">Amatlas · authoring atlas</p>
+      <h1>引擎选材星图</h1>
+      <p class="lede">这是随引擎发布的开发者目录。每张图版都在同一个嵌入窗口中打开；关闭窗口就卸载对应页面，并回到原来的选材位置。子页保持独立，既不认识这个目录，也不承担返回导航。</p>
+      <nav class="route" aria-label="Gallery 分区">
+        <a href="#workbenches">通用工作台</a>
+        <a href="#maze-inspection">maze3d 选材</a>
+        <a href="#playable-references">可玩范本</a>
+        <a href="#integrated-dogfood">综合作品</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="catalog-section workbenches" id="workbenches">
+      <div class="section-head"><div><h2>通用工作台</h2><p>比较普通页面外观与通用音频作者面。它们使用真实 boot 链，但不是新的玩法模块。</p></div><span class="section-count">02 plates</span></div>
+      <div class="cards">
+        <button class="launch-card" type="button" data-src="ui-skins-gallery.html" data-title="UI Skin Gallery" data-kind="Authoring Workbench" aria-haspopup="dialog" aria-controls="demoport" disabled><span class="card-meta"><span class="card-kind">UI Skin</span><span class="card-mark">A·01</span></span><h3>普通页面 UI Skin Gallery</h3><p>在同一套文字冒险 DOM 与插件 chrome 上比较八套外观，判断哪种皮肤适合题材。</p><span class="card-path">examples/showroom/ui-skins-gallery.html</span><span class="card-action">嵌入打开</span></button>
+        <button class="launch-card" type="button" data-src="audio-preview.html" data-title="Audio Workbench" data-kind="Authoring Workbench" aria-haspopup="dialog" aria-controls="demoport" disabled><span class="card-meta"><span class="card-kind">Amatlas Audio</span><span class="card-mark">A·02</span></span><h3>通用 Audio Workbench</h3><p>试听 MusicSpec、timbre、MIDI、ambient、sfx 与组合场景；默认静音，操作后才放声。</p><span class="card-path">examples/showroom/audio-preview.html</span><span class="card-action">嵌入打开</span></button>
+      </div>
+    </section>
+
+    <section class="catalog-section maze" id="maze-inspection">
+      <div class="section-head"><div><h2>maze3d 选材</h2><p>两个 helper 留在 maze3d 岛内：一个看静态首帧，一个用真实 maze 数据核听声音。</p></div><span class="section-count">02 plates</span></div>
+      <div class="cards">
+        <button class="launch-card" type="button" data-src="../maze3d/gallery.html" data-title="maze3d Visual Asset Gallery" data-kind="maze3d Inspection" aria-haspopup="dialog" aria-controls="demoport" disabled><span class="card-meta"><span class="card-kind">Visual Assets</span><span class="card-mark">M·01</span></span><h3>maze3d 视觉素材</h3><p>比较主题、墙地顶材质、墙饰、柱子与出口样式。静态、无声、无控制。</p><span class="card-path">examples/maze3d/gallery.html</span><span class="card-action">嵌入打开</span></button>
+        <button class="launch-card" type="button" data-src="../maze3d/audio-gallery.html" data-title="maze3d Audio Gallery" data-kind="maze3d Inspection" aria-haspopup="dialog" aria-controls="demoport" disabled><span class="card-meta"><span class="card-kind">Maze Audio</span><span class="card-mark">M·02</span></span><h3>maze3d 声音试听</h3><p>核听主题氛围、拾取、机关、门、怪物 proximity 与 mimic，切换时清理旧预览。</p><span class="card-path">examples/maze3d/audio-gallery.html</span><span class="card-action">嵌入打开</span></button>
+      </div>
+    </section>
+
+    <section class="catalog-section refs" id="playable-references">
+      <div class="section-head"><div><h2>可玩范本</h2><p>七个正式 reference：可复制的模块起点与一个底层 escape-hatch 对照。范本本身都是无 Gallery 回链的叶子。</p></div><span class="section-count">07 references</span></div>
+      <div class="cards">
+        <button class="launch-card" type="button" data-src="../text-adventure-demo/index.html" data-title="Text Adventure" data-kind="Playable Reference" aria-haspopup="dialog" aria-controls="demoport" disabled><span class="card-meta"><span class="card-kind">Text Adventure</span><span class="card-mark">R·01</span></span><h3>文字冒险主范本</h3><p>scene、links、事件、SVG、音频、存档、小地图与成就的标准组合。</p><span class="card-path">examples/text-adventure-demo/index.html</span><span class="card-action">嵌入试玩</span></button>
+        <button class="launch-card" type="button" data-src="../tabletop-demo/index.html" data-title="Tabletop" data-kind="Playable Reference" aria-haspopup="dialog" aria-controls="demoport" disabled><span class="card-meta"><span class="card-kind">Tabletop</span><span class="card-mark">R·02</span></span><h3>跑团检定范本</h3><p>角色卡、技能检定、可复现骰子反馈、结果分流与资源消耗。</p><span class="card-path">examples/tabletop-demo/index.html</span><span class="card-action">嵌入试玩</span></button>
+        <button class="launch-card" type="button" data-src="../cutscene-demo/index.html" data-title="Cutscene" data-kind="Playable Reference" aria-haspopup="dialog" aria-controls="demoport" disabled><span class="card-meta"><span class="card-kind">Cutscene</span><span class="card-mark">R·03</span></span><h3>过场集成范本</h3><p>普通文字冒险中穿插时间轴演出；首、中拍逐拍快进，末拍才出现章节出口。</p><span class="card-path">examples/cutscene-demo/index.html</span><span class="card-action">嵌入试玩</span></button>
+        <button class="launch-card" type="button" data-src="../maze3d/index.html" data-title="maze3d" data-kind="Playable Reference" aria-haspopup="dialog" aria-controls="demoport" disabled><span class="card-meta"><span class="card-kind">maze3d</span><span class="card-mark">R·04</span></span><h3>maze3d 统一入口</h3><p>basic、horror、puzzle、layers 都属于同一个 raycast runtime，不拆成多个模块。</p><span class="card-path">examples/maze3d/index.html</span><span class="card-action">嵌入试玩</span></button>
+        <button class="launch-card" type="button" data-src="../minimal-demo/index.html" data-title="Minimal" data-kind="Playable Reference" aria-haspopup="dialog" aria-controls="demoport" disabled><span class="card-meta"><span class="card-kind">Minimal</span><span class="card-mark">R·05</span></span><h3>最小模块范本</h3><p>创建引擎尚未提供的玩法类型时，从这个最小自定义模块骨架起步。</p><span class="card-path">examples/minimal-demo/index.html</span><span class="card-action">嵌入试玩</span></button>
+        <button class="launch-card" type="button" data-src="../arcade-demo/index.html" data-title="Arcade" data-kind="Playable Reference" aria-haspopup="dialog" aria-controls="demoport" disabled><span class="card-meta"><span class="card-kind">Arcade</span><span class="card-mark">R·06</span></span><h3>街机孤岛范本</h3><p>展示实时小玩法如何作为一等节点接入 Amatlas，同时保留自己的循环与输入。</p><span class="card-path">examples/arcade-demo/index.html</span><span class="card-action">嵌入试玩</span></button>
+        <button class="launch-card" type="button" data-src="../horror-demo/index.html" data-title="Horror / Escape Hatch" data-kind="Escape Hatch · 非默认模板" aria-haspopup="dialog" aria-controls="demoport" disabled><span class="card-meta"><span class="card-kind">Escape Hatch</span><span class="card-mark">R·07</span></span><h3>恐怖短片 · 演出压测</h3><p>底层 <code>createEngine + engine.use</code> 手写装配对照；用于理解边界，不是新游戏默认模板。</p><span class="card-path">examples/horror-demo/index.html</span><span class="card-action">嵌入试玩</span></button>
+      </div>
+    </section>
+
+    <section class="catalog-section dogfood" id="integrated-dogfood">
+      <div class="section-head"><div><h2>综合作品</h2><p>用于检验多个模块能否组成完整体验，不计入七个正式可复制范本。</p></div><span class="section-count">01 dogfood</span></div>
+      <div class="cards">
+        <button class="launch-card" type="button" data-src="../origin/index.html" data-title="承星者 / Origin" data-kind="Integrated Dogfood" aria-haspopup="dialog" aria-controls="demoport" disabled><span class="card-meta"><span class="card-kind">Integrated Dogfood</span><span class="card-mark">D·01</span></span><h3>承星者 / Origin</h3><p>把 cutscene、scene、encounter 与 maze3d 组合在同一作品中，展示引擎的组合上限。</p><span class="card-path">examples/origin/index.html</span><span class="card-action">嵌入试玩</span></button>
+      </div>
+    </section>
+
+    <p class="catalog-note"><strong>目录边界：</strong>Gallery 只知道这些稳定入口与 iframe 生命周期；它不读取子页业务 DOM、不调用子页引擎，也不向子页注入 embedded mode。</p>
+  </main>
+
+  <noscript>这个开发者 Gallery 需要 JavaScript 才能打开嵌入窗口；卡片不会退化为跨页硬跳转。</noscript>
+
+  <div class="demoport" id="demoport" hidden>
+    <div class="demoport-scrim" aria-hidden="true"></div>
+    <div class="demoport-panel" role="dialog" aria-modal="true" aria-labelledby="demoport-title">
+      <div class="demoport-bar">
+        <div class="demoport-heading"><span class="demoport-kind"></span><span class="demoport-title" id="demoport-title"></span></div>
+        <button class="demoport-close" type="button" aria-label="关闭嵌入窗口">✕</button>
+      </div>
+      <iframe class="demoport-frame" title="" loading="lazy" allow="autoplay" tabindex="0"></iframe>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+    var port = document.getElementById('demoport');
+    var frame = port && port.querySelector('.demoport-frame');
+    var closeButton = port && port.querySelector('.demoport-close');
+    var scrim = port && port.querySelector('.demoport-scrim');
+    var title = port && port.querySelector('.demoport-title');
+    var kind = port && port.querySelector('.demoport-kind');
+    var launchers = document.querySelectorAll('button[data-src]');
+    var lastReturn = null;
+    var savedOverflow = null;
+    var inerted = [];
+    var frameDocument = null;
+    var frameKeyHandler = null;
+
+    if (!port || !frame || !closeButton || !scrim || !title || !kind || launchers.length !== 12) {
+      throw new Error('[showroom] embedded Gallery 初始化失败：demoport 或 12 个入口不完整');
+    }
+
+    function setBackgroundInert(on) {
+      if (on) {
+        inerted = [];
+        Array.prototype.forEach.call(document.body.children, function (element) {
+          if (element === port || element.hasAttribute('inert')) return;
+          element.setAttribute('inert', '');
+          inerted.push(element);
+        });
+      } else {
+        inerted.forEach(function (element) { element.removeAttribute('inert'); });
+        inerted = [];
+      }
+    }
+
+    function frameFocusables(doc) {
+      var nodes = doc.querySelectorAll('a[href],button,input,select,textarea,[tabindex]');
+      return Array.prototype.filter.call(nodes, function (element) {
+        var style = null;
+        try { style = doc.defaultView && doc.defaultView.getComputedStyle(element); } catch (_) {}
+        return !element.disabled && element.tabIndex >= 0 && element.getClientRects().length > 0 &&
+          (!style || (style.visibility !== 'hidden' && style.display !== 'none'));
+      });
+    }
+
+    function detachFrameKeys() {
+      if (frameDocument && frameKeyHandler) {
+        try { frameDocument.removeEventListener('keydown', frameKeyHandler, true); } catch (_) {}
+      }
+      frameDocument = null;
+      frameKeyHandler = null;
+    }
+
+    function openPort(button) {
+      var src = button.getAttribute('data-src');
+      if (!src) return;
+      title.textContent = button.getAttribute('data-title') || '';
+      kind.textContent = button.getAttribute('data-kind') || '';
+      frame.setAttribute('title', title.textContent);
+      frame.setAttribute('src', src);
+      port.hidden = false;
+      port.classList.add('open');
+      savedOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      setBackgroundInert(true);
+      lastReturn = button;
+      closeButton.focus();
+    }
+
+    function closePort() {
+      if (port.hidden) return;
+      detachFrameKeys();
+      port.classList.remove('open');
+      frame.setAttribute('src', 'about:blank');
+      frame.removeAttribute('src');
+      document.body.style.overflow = savedOverflow === null ? '' : savedOverflow;
+      savedOverflow = null;
+      setBackgroundInert(false);
+      port.hidden = true;
+      if (lastReturn) lastReturn.focus();
+      lastReturn = null;
+    }
+
+    frame.addEventListener('load', function () {
+      detachFrameKeys();
+      if (port.hidden || !port.classList.contains('open')) return;
+      var doc = null;
+      try { doc = frame.contentDocument; } catch (_) {}
+      if (!doc) return;
+      frameKeyHandler = function (event) {
+        if (event.key === 'Escape') {
+          setTimeout(function () {
+            if (!event.defaultPrevented && !port.hidden) closePort();
+          }, 0);
+          return;
+        }
+        if (event.key !== 'Tab') return;
+        var list = frameFocusables(doc);
+        var active = doc.activeElement;
+        if (event.shiftKey && (!list.length || active === list[0] || active === doc.body || active === doc.documentElement)) {
+          event.preventDefault();
+          closeButton.focus();
+        } else if (!event.shiftKey && (!list.length || active === list[list.length - 1])) {
+          event.preventDefault();
+          closeButton.focus();
+        }
+      };
+      frameDocument = doc;
+      try { doc.addEventListener('keydown', frameKeyHandler, true); } catch (_) { detachFrameKeys(); }
+    });
+
+    Array.prototype.forEach.call(launchers, function (button) {
+      button.addEventListener('click', function () { openPort(button); });
+      button.disabled = false;
+    });
+    closeButton.addEventListener('click', closePort);
+    scrim.addEventListener('click', closePort);
+    document.addEventListener('keydown', function (event) {
+      if (port.hidden || !port.classList.contains('open')) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closePort();
+      } else if (event.key === 'Tab') {
+        if (document.activeElement === closeButton && event.shiftKey) {
+          event.preventDefault();
+          var previousDoc = null;
+          var previousList = [];
+          try { previousDoc = frame.contentDocument; previousList = previousDoc ? frameFocusables(previousDoc) : []; } catch (_) {}
+          if (previousList.length) previousList[previousList.length - 1].focus(); else frame.focus();
+        } else if (document.activeElement === closeButton && !event.shiftKey) {
+          event.preventDefault();
+          frame.focus();
+        } else if (document.activeElement === frame) {
+          event.preventDefault();
+          if (event.shiftKey) {
+            var frameDoc = null;
+            var frameList = [];
+            try { frameDoc = frame.contentDocument; frameList = frameDoc ? frameFocusables(frameDoc) : []; } catch (_) {}
+            if (frameList.length) frameList[frameList.length - 1].focus(); else closeButton.focus();
+          } else {
+            closeButton.focus();
+          }
+        }
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

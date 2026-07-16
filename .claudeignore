@@ -1,0 +1,8 @@
+# 不让这些进入自动上下文(节省 context window)
+.git/
+*.log
+.DS_Store
+__pycache__/
+
+# 机器特定
+.claude/python-path
