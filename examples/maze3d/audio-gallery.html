@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Amatlas maze3d 声音试听 Gallery</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070b11;
+      --panel: #111925;
+      --panel-2: #172232;
+      --ink: #e9f0f7;
+      --muted: #9caebe;
+      --line: rgba(255,255,255,.12);
+      --accent: #75c7ff;
+      --warm: #f0b55a;
+      --bad: #ff8a8a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: radial-gradient(circle at 18% 0%, #1d2d3d 0, var(--bg) 44rem); color: var(--ink); font: 14px/1.58 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    header { padding: 18px clamp(16px, 4vw, 34px); background: linear-gradient(180deg, rgba(7,11,17,.97), rgba(7,11,17,.88)); border-bottom: 1px solid var(--line); }
+    h1 { margin: 0 0 6px; font-size: clamp(22px, 3vw, 34px); letter-spacing: .03em; }
+    header p { margin: 0; max-width: 1040px; color: var(--muted); }
+    .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .links a { color: #d9efff; text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: rgba(255,255,255,.05); }
+    .links a:hover { border-color: rgba(117,199,255,.7); background: rgba(117,199,255,.12); }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .tabs button, .tool-btn, .card button { border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; background: rgba(255,255,255,.05); color: var(--ink); cursor: pointer; }
+    .tabs button[aria-pressed="true"], .card.active button { border-color: rgba(117,199,255,.76); background: rgba(117,199,255,.17); color: #dff4ff; }
+    main { padding: 22px clamp(16px, 4vw, 34px) 48px; }
+    .console { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(280px, 640px); gap: 16px; align-items: start; margin-bottom: 26px; }
+    .panel { background: linear-gradient(180deg, var(--panel), #0d131c); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 14px 38px rgba(0,0,0,.28); overflow: hidden; }
+    .panel-body { padding: 14px 16px 16px; }
+    .panel h2 { margin: 0 0 8px; font-size: 18px; }
+    .panel p { margin: 7px 0; color: var(--muted); }
+    .now code, .card code { color: #ffd48a; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
+    .tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .tool-btn.stop { border-color: rgba(255,138,138,.42); color: #ffd8d8; }
+    .stage-wrap { padding: 10px; }
+    #audio-maze-stage { width: 100%; aspect-ratio: 16 / 10; background: #03060b; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; position: relative; }
+    #audio-maze-stage:empty::before { content: "选择下方卡片后,按住画面下方 ▲ 或按键盘方向键解锁声音"; position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); background: radial-gradient(circle at 50% 30%, rgba(117,199,255,.08), transparent 60%); }
+    #audio-maze-stage canvas { display: block; width: 100%; height: 100%; image-rendering: auto; pointer-events: none; }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 8px; }
+    section { margin: 0 0 32px; }
+    section h2 { margin: 0 0 8px; font-size: 20px; }
+    .section-note { margin: 0 0 14px; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(238px, 1fr)); gap: 13px; }
+    .card { background: linear-gradient(180deg, var(--panel), #0e141d); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: 0 12px 32px rgba(0,0,0,.24); }
+    .card.active { border-color: rgba(117,199,255,.7); box-shadow: 0 0 0 1px rgba(117,199,255,.22), 0 14px 38px rgba(0,0,0,.34); }
+    .card .meta { padding: 12px; }
+    .card strong { display: block; font-size: 15px; }
+    .card p { margin: 7px 0 10px; color: var(--muted); font-size: 12px; }
+    .hidden { display: none !important; }
+    .error { margin: 18px 0; padding: 12px; border: 1px solid #8d3030; border-radius: 10px; background: #2b1111; color: #ffd1d1; white-space: pre-wrap; }
+    @media (max-width: 840px) { .console { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>maze3d 声音试听 Gallery</h1>
+    <p>这是统一 maze3d 入口附带的声音试听页:集中核听同一 runtime 的主题氛围、拾取反馈、机关动作、钥匙/门、怪物 proximity 与 mimic 念白。它不是新玩法流程,也不是公共 audio 契约;每张卡都装入真实 maze 数据,部分声音在卡片激活/进节点时启动,拾取、机关、钥匙门和 proximity 则由玩家移动触发。页面必须保持单 engine、可停止、可静音、切换会清理旧 preview;不要把试听控制台照抄进游戏。</p>
+    <p class="links"><a href="index.html">maze3d 统一入口</a><a href="references/maze3d-authoring.md">maze3d 作者手册</a><a href="gallery.html">maze3d 视觉素材 Gallery</a></p>
+    <nav class="tabs" aria-label="声音分类筛选"></nav>
+  </header>
+
+  <main>
+    <div class="console">
+      <section class="panel now" aria-live="polite">
+        <div class="panel-body">
+          <h2 id="active-title">未启动试听</h2>
+          <p id="active-note">先选下方任一卡片;浏览器通常还需要你按住画面下方 ▲ 或按键盘方向键,才会真正放声。</p>
+          <p><code id="active-code">无 active preview</code></p>
+          <div class="tools">
+            <button type="button" class="tool-btn stop" id="stop-preview">停止当前试听</button>
+            <button type="button" class="tool-btn" id="mute-toggle">🔊 全局声音</button>
+          </div>
+          <p class="hint">真实听感只能人工核;自动化只验证页面能加载、卡片能启动、切换会停掉旧 preview。若听不到,先确认浏览器标签页未静音,再按住 ▲ 或按键盘方向键。</p>
+        </div>
+      </section>
+      <section class="panel">
+        <div class="stage-wrap"><div id="audio-maze-stage"></div></div>
+      </section>
+    </div>
+
+    <div id="audio-gallery"></div>
+  </main>
+
+  <script src="../../core/runtime/engine-core.js"></script>
+  <script src="raycast-maze.js"></script>
+  <script src="audio-gallery.js"></script>
+</body>
+</html>

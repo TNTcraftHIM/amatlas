@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh" data-ui="amatlas-dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Amatlas maze3d · 统一入口与 recipes</title>
+<link rel="stylesheet" href="../../ui/amatlas-skins.css">
+<link rel="stylesheet" href="../../ui/touch-controls.css">   <!-- 共享:虚拟触控键帽(消费 skin token,随皮肤适配) -->
+<style>
+/* maze3d 私有边界:共享 skin 管普通 DOM/plugin chrome;这里保留 3D 舞台、recipes 说明和旧入口的恐怖阅读气质。 */
+html[data-ui]{--amatlas-app-max:760px;--amatlas-accent:#78c7ff;--amatlas-accent-2:#78c7ff;--amatlas-body-font:Georgia,'Songti SC',serif;--amatlas-ui-font:system-ui,sans-serif}
+#app{min-height:100dvh;padding:24px 20px calc(64px + env(safe-area-inset-bottom))}
+#plugin-bar{margin:0 0 10px}
+#mapname{font:600 11px/1.4 var(--amatlas-ui-font);letter-spacing:.32em;text-transform:uppercase}
+#place{font:700 26px/1.25 Georgia,serif;color:#fff;margin:0 0 .5em}
+.notice{margin:0 0 14px;padding:10px 12px;border:1px solid rgba(120,199,255,.32);border-radius:12px;background:rgba(120,199,255,.08);color:#d9f0ff;font:13px/1.55 var(--amatlas-ui-font)}
+#maze3d-stage{width:100%;margin:10px 0 16px;display:flex;flex-direction:column;align-items:center}
+#maze3d-stage:empty{display:none}
+#maze3d-stage .amatlas-maze-screen{position:relative;width:100%;aspect-ratio:16/10;background:#05080e;border:1px solid var(--amatlas-line);border-radius:12px;overflow:hidden;box-shadow:0 6px 34px rgba(0,0,0,.58)}
+#maze3d-stage canvas{display:block;width:100%;height:100%;image-rendering:auto}
+#look{margin:0}
+#look > .line{margin:0 0 .7em;animation:fadeUp .4s ease both}
+#choices{margin-top:22px}
+.choice{padding:13px 17px;font:15px/1.45 var(--amatlas-ui-font)}
+#status{font:12px var(--amatlas-ui-font);padding-top:14px;gap:18px}
+.hint{font:12px/1.6 var(--amatlas-ui-font);color:var(--amatlas-muted);margin-top:6px}
+code{color:#ffd48a;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<main id="app">
+  <div id="plugin-bar"></div>
+  <div class="notice">maze3d 统一入口:<code>basic</code> / <code>horror</code> / <code>puzzle</code> / <code>layers</code> 都是同一 <code>maze3d</code> runtime 的 recipes,不是不同模块;四种玩法遵循同一字段与状态边界。</div>
+  <div id="mapname"></div>
+  <h1 id="place"></h1>
+  <div id="maze3d-stage"></div>
+  <div id="scene"></div>
+  <div id="look"></div>
+  <div class="hint">画面下方的 ← ▲ ▼ → 按钮(鼠标/触屏按住即走);或方向键 ↑↓←→ / WASD。遇到可查看线索时,按 E / Enter 或点”查看”;少数自定义世界若启用主动互动,同一按钮会临时变成”互动”。</div>
+  <div id="choices"></div>
+  <div id="status"></div>
+</main>
+
+<!-- 引擎核心 -->
+<script src="../../core/runtime/engine-core.js"></script>
+<!-- 玩法模块:scene + encounter + 同一 maze3d runtime -->
+<script src="../../modules/text-adventure/runtime/renderer.js"></script>
+<script src="../../modules/tabletop/runtime/tabletop.js"></script>
+<script src="raycast-maze.js"></script>
+<!-- 呈现器 -->
+<script src="../../presenters/present-svg.js"></script>
+<script src="../../presenters/present-dom.js"></script>
+<script src="../../presenters/progressions.js"></script>
+<script src="../../presenters/compose-music.js"></script>
+<script src="../../presenters/present-audio.js"></script>
+<!-- 插件 -->
+<script src="../../plugins/inventory.js"></script>
+<script src="../../plugins/reset.js"></script>
+<!-- 数据 + 装配 -->
+<script src="../../preset/boot.js"></script>
+<script src="world.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
