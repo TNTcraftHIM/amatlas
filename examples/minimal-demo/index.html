@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh" data-ui="amatlas-dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Amatlas demo · 最小模块「计数器」</title>
+<!--
+  Amatlas 最小 demo(minimal 模块 + 复用 present-dom 文字呈现器)。模块化源码:核心 + minimal 模块 + 文字呈现器 + 世界数据 + 启动胶水。
+  这是"创建新模块"的起点模板——复制 modules/minimal/ + 本目录,改名,逐步替换(见 text-adventure-game skill 的 references/plugin-development.md)。
+  开发期:双击本文件即玩。发布期:构建器把这些 <script src> 与共享 CSS 内联成单个 all-in-one HTML(离线双击、无服务器)。
+-->
+<link rel="stylesheet" href="../../ui/amatlas-skins.css">
+<style>
+  /* 最小模块范本的私有边界:共享 skin 管通用 DOM chrome;这里保留旧范本的窄布局节奏和手写 reset。 */
+  html[data-ui] { --amatlas-app-max: 560px; }
+  #app{padding-top:32px;}
+  #place{font-size:22px;line-height:1.7;}
+  #look>div{margin:6px 0;}
+  #status{font-size:13px;}
+  #reset{position:fixed;top:10px;right:10px;min-height:44px;background:transparent;border:1px solid var(--amatlas-line);color:var(--amatlas-muted);
+    border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:var(--amatlas-ui-font,inherit)}
+  #reset:hover{border-color:var(--amatlas-accent);color:var(--amatlas-accent)}
+</style>
+</head>
+<body>
+<main id="app">
+  <div id="mapname"></div>
+  <h1 id="place"></h1>
+  <div id="look"></div>
+  <div id="choices"></div>
+  <div id="status"></div>
+</main>
+<button id="reset">重新开始</button>
+
+<script src="../../core/runtime/engine-core.js"></script>
+<script src="../../presenters/present-dom.js"></script>   <!-- 复用:通用 View→DOM 呈现器 -->
+<script src="../../modules/minimal/runtime/minimal.js"></script>
+<script src="world.js"></script>
+<script src="../../preset/boot.js"></script>   <!-- S12:Amatlas.boot 默认装配 -->
+<script src="game.js"></script>
+</body>
+</html>

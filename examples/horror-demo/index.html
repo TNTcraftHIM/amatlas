@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-ui="amatlas-dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amatlas · 恐怖短片(presenter 品质压测)</title>
+<link rel="stylesheet" href="../../ui/amatlas-skins.css">
+<style>
+  /* horror-demo 是刻意保留的 escape hatch:接入共享 CSS 管线,但恐怖短片的脏质感仍由本页覆盖。 */
+  :root{
+    --bg:#070708; --panel:#0d0d10; --ink:#c7c2b8; --dim:#6d6a64;
+    --accent:#9e2a2b; --line:#1d1d22;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.7 "Georgia","Songti SC","SimSun",serif; }
+  body::before{ display:none; }
+  #app{ max-width:680px; min-height:0; margin:0 auto; padding:28px 20px 64px; background:transparent; border:0; border-radius:0; box-shadow:none; }
+  #mapname{ color:var(--dim); font-size:13px; letter-spacing:.32em; text-transform:uppercase; }
+  #place{ font-size:24px; font-weight:600; margin:.1em 0 .5em; color:#e8e3d8; }
+  /* SVG 场景插槽:恐怖演出的主舞台(画幅黑边/眼睛/过场都画在这里)。:empty 时隐藏 → 纯文字退化。 */
+  #scene{ width:100%; aspect-ratio:16/9; margin:6px 0 18px; background:#000; border:1px solid var(--line);
+    border-radius:0; overflow:hidden; box-shadow:none; }   /* aspect-ratio 16/9 = SVG viewBox 比例,避免左右 pillarbox 黑边(旧 height:260px≠16:9) */
+  #scene:empty{ display:none; }
+  #look{ white-space:pre-wrap; min-height:3em; margin:0; color:var(--ink); }
+  #look .event{ color:var(--accent); font-style:italic; background:transparent; border-left:0; padding-left:0; }
+  #choices{ margin-top:22px; display:flex; flex-direction:column; gap:10px; }
+  .choice{ text-align:left; background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:0; min-height:auto;
+    padding:11px 14px; font:inherit; cursor:pointer; transition:border-color .2s, color .2s; }
+  .choice:hover{ border-color:var(--accent); color:#e8e3d8; }
+  .choice.move::before{ content:"→ "; color:var(--dim); }
+  .choice.locked{ color:#3c3a36; cursor:default; border-style:dashed; opacity:1; }
+  #status{ margin-top:20px; padding-top:0; border-top:0; color:var(--dim); font-size:13px; letter-spacing:.04em; }
+  #status b{ color:var(--ink); font-weight:600; }
+  #reset{ margin-top:30px; background:none; color:var(--dim); border:1px solid var(--line);
+    padding:6px 12px; font:inherit; font-size:13px; cursor:pointer; min-height:44px; }
+  #reset:hover{ color:var(--accent); border-color:var(--accent); }
+</style>
+</head>
+<body>
+  <div id="app">
+    <div id="mapname"></div>
+    <div id="place"></div>
+    <div id="scene"></div>
+    <div id="look"></div>
+    <div id="choices"></div>
+    <div id="status"></div>
+    <button id="reset">重开</button>
+  </div>
+
+  <!-- 核心 + 文字冒险模块 + 三呈现器 + 世界 + 启动胶水。构建器会把它们内联成单 HTML(file:// 双击即玩)。 -->
+  <script src="../../core/runtime/engine-core.js"></script>
+  <script src="../../modules/text-adventure/runtime/renderer.js"></script>
+  <script src="../../presenters/present-dom.js"></script>
+  <script src="../../presenters/present-svg.js"></script>
+  <script src="../../presenters/progressions.js"></script>
+  <script src="../../presenters/compose-music.js"></script>
+  <script src="../../presenters/present-audio.js"></script>
+  <script src="world.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

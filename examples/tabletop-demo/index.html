@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh" data-ui="amatlas-dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Amatlas demo · 跑团切片「灯塔」</title>
+<!--
+  Amatlas 跑团 demo(tabletop 模块 + S8.5 可插拔表现层/能力插件)。模块化源码:核心 + 跑团模块 +
+  文字(复用 text-adventure 的 present-dom)/SVG/音频 三呈现器 + 存档/小地图/成就 三能力插件 + 世界数据 + 启动胶水。
+  game.js 用 Amatlas.boot(WORLD, manifest) 声明式装配:按内置 kind(encounter) 自动拉 Tabletop,按 manifest 挂呈现器/能力插件。
+  注意:**没有** render 包装——tabletop 模块原生产出 scene/audio;手写 use 对照见 horror-demo。
+  开发期:双击本文件即玩。发布期:构建器把这些 <script src> 与共享 CSS 内联成单个 all-in-one HTML(离线双击、无服务器)。
+-->
+<link rel="stylesheet" href="../../ui/amatlas-skins.css">
+<style>
+  /* 跑团私有微调:共享 skin 管通用 DOM/plugin chrome;这里只保留检定段落的呼吸感。 */
+  #look > .line { margin: 6px 0; }
+</style>
+</head>
+<body>
+<main id="app">
+  <div id="plugin-bar"></div>      <!-- S8.5:存档💾/地图🗺️/成就🏆 工具栏(放 #app 顶部=常驻控件惯例;别放最底)-->
+  <div id="mapname"></div>
+  <h1 id="place"></h1>
+  <div id="scene"></div>           <!-- S8.5:SVG 场景呈现器插槽(检定时画骰子;不挂 SVG 则空、退化为纯文字)-->
+  <div id="look"></div>
+  <div id="choices"></div>
+  <div id="status"></div>          <!-- 角色卡:资源/回合/技能(经通用状态条呈现)-->
+</main>
+<!-- ↻ 重新开始由 manifest.reset:true → ResetPlugin 自动挂进 #plugin-bar(统一工具栏);这里不再保留旧的手写按钮。 -->
+<div id="plugin-minimap"></div>     <!-- S8.5:小地图插件插槽 -->
+<div id="plugin-overlay"></div>     <!-- S8.5:成就插件插槽(解锁弹窗)-->
+
+<script src="../../core/runtime/engine-core.js"></script>
+<script src="../../modules/tabletop/runtime/tabletop.js"></script>
+<script src="../../presenters/present-dom.js"></script>   <!-- 复用:通用 View→DOM 呈现器(与玩法类型无关)-->
+<!-- S8.5 可插拔表现层 + 能力插件(注释任一行即关闭对应能力)-->
+<script src="../../presenters/present-svg.js"></script>
+<script src="../../presenters/progressions.js"></script>
+<script src="../../presenters/compose-music.js"></script>
+<script src="../../presenters/present-audio.js"></script>
+<script src="../../plugins/save.js"></script>
+<script src="../../plugins/minimap.js"></script>
+<script src="../../plugins/achievement.js"></script>
+<script src="../../plugins/reset.js"></script>
+<script src="world.js"></script>
+<script src="../../preset/boot.js"></script>   <!-- S12:pit-of-success 默认装配(game.js 用 Amatlas.boot 声明 manifest)-->
+<script src="game.js"></script>
+</body>
+</html>

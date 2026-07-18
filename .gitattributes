@@ -1,0 +1,5 @@
+# 全树强制 LF —— 防 Windows checkout / git archive 打包在 autocrlf=true 下把 CRLF 带进脚本/测试/文档/产物。
+# text=auto:git 自动识别文本(二进制不动)、提交时归一化为 LF;eol=lf:checkout/导出(含 git archive)也强制 LF。
+# 一条覆盖一切文本——脚本(.sh/.mjs/.js/.py)、测试(.cjs)、文档(.md)、.json/.txt、及 .gitignore/.claudeignore 等无扩展名 dotfile。
+# (历史:本文件曾只逐个列脚本扩展名,漏了 .cjs/.md/.txt/dotfile → 它们在 git archive 子树打包时被 smudge 成 CRLF;逐个补是 whack-a-mole,故改 catch-all。见 docs/lessons-learned.md ㉚)
+* text=auto eol=lf

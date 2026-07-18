@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh" data-ui="amatlas-dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Amatlas cutscene example · 灯塔回潮</title>
+<!--
+  Amatlas cutscene example:主体是普通文字冒险(kind:'scene'),cutscene 只在开局/关键剧情/结尾接管舞台。
+  目的不是把 cutscene 做成孤立小样,而是示范:正文段保持 text-adventure 原生阅读布局,演出段临时进入电影化舞台。
+  音频预览路径:开局首拍 music 渐入 → 中间拍不写 audio 继承不重启 → 普通玩法同 key 延续 → 关键剧情换 music 交叉淡变 → 结尾收束。
+-->
+<link rel="stylesheet" href="../../ui/amatlas-skins.css">
+<style>
+  /* cutscene 私有边界:普通 scene 吃共享 skin;只有当前 node.kind=cutscene 时临时进入电影化舞台。
+     这些规则刻意复刻 skin 前的舞台几何,避免共享普通阅读 CSS 把 cutscene 压成正文卡片。 */
+  html[data-node-kind="cutscene"] body{background:radial-gradient(circle at 50% 0,#152845 0,#08111f 34%,#030711 100%);line-height:1.8}
+  html[data-node-kind="cutscene"] #plugin-bar{position:fixed;top:12px;right:12px;margin-top:0;z-index:80}
+  html[data-node-kind="cutscene"] #app{max-width:none;width:min(100%,1180px);min-height:100vh;margin:0 auto;padding:clamp(14px,3vw,34px) clamp(12px,2.6vw,28px) calc(28px + env(safe-area-inset-bottom));
+    display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto auto;gap:10px;position:relative;background:transparent;border:0;border-radius:0;box-shadow:none;backdrop-filter:none}
+  html[data-node-kind="cutscene"] #mapname{display:block;letter-spacing:3px;font-size:12px;text-transform:uppercase;text-shadow:0 2px 14px var(--amatlas-shadow)}
+  html[data-node-kind="cutscene"] #place{font-size:clamp(19px,2.5vw,30px);font-weight:600;margin:0 0 2px;letter-spacing:2px;text-shadow:0 3px 24px var(--amatlas-shadow)}
+  html[data-node-kind="cutscene"] #scene{width:100%;margin:0;max-height:62vh;aspect-ratio:21/9;border-radius:18px;align-self:center;background:#02050b;
+    box-shadow:0 26px 70px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.04) inset}
+  html[data-node-kind="cutscene"] #look{width:min(100%,920px);margin:-84px auto 0;padding:18px clamp(18px,3vw,34px);min-height:5.5em;z-index:2;
+    font-size:clamp(16px,1.65vw,20px);letter-spacing:.04em;text-shadow:0 2px 14px #000;background:linear-gradient(180deg,rgba(2,6,12,.16),rgba(2,6,12,.74));
+    border:1px solid rgba(255,255,255,.08);border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.42);backdrop-filter:blur(6px)}
+  html[data-node-kind="cutscene"] #scene:empty + #look{margin:8px auto 0}
+  html[data-node-kind="cutscene"] #choices{width:min(100%,920px);margin:0 auto;display:flex;flex-direction:row;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;z-index:3;padding-bottom:env(safe-area-inset-bottom)}
+  html[data-node-kind="cutscene"] .choice{border-radius:999px;background:color-mix(in srgb,var(--amatlas-panel-2) 76%,transparent);border-color:rgba(214,229,255,.18);box-shadow:0 10px 26px rgba(0,0,0,.30);padding:10px 17px;font-family:inherit}
+  html[data-node-kind="cutscene"] .choice:not(.move){min-width:54px;text-align:center;color:var(--amatlas-accent);background:rgba(3,7,14,.64)}
+  html[data-node-kind="cutscene"] #status{width:min(100%,920px);margin:8px auto 0;justify-content:center;text-shadow:0 2px 10px var(--amatlas-shadow)}
+  html[data-node-kind="cutscene"] #status:empty{display:none;border:none}
+
+  @media (max-width:720px){
+    html[data-node-kind="cutscene"] #app{padding-top:18px;gap:8px;grid-template-rows:auto auto auto auto auto auto auto;align-content:start}
+    html[data-node-kind="cutscene"] #plugin-bar{position:static;grid-row:1;justify-content:flex-start;margin-bottom:4px}
+    html[data-node-kind="cutscene"] #scene{aspect-ratio:16/10;max-height:54vh;border-radius:14px}
+    html[data-node-kind="cutscene"] #look{margin:-42px auto 0;min-height:4.5em;font-size:15px;padding:14px 15px;border-radius:13px}
+    html[data-node-kind="cutscene"] #choices{justify-content:flex-start}
+    html[data-node-kind="cutscene"] .choice{width:100%;border-radius:14px}
+    html[data-node-kind="cutscene"] .choice:not(.move){width:auto;min-width:56px}
+  }
+</style>
+</head>
+<body>
+<main id="app">
+  <div id="plugin-bar"></div>
+  <div id="mapname"></div>
+  <h1 id="place"></h1>
+  <div id="scene"></div>
+  <div id="look"></div>
+  <div id="choices"></div>
+  <div id="status"></div>
+</main>
+<div id="plugin-minimap"></div>
+<div id="plugin-overlay"></div>
+
+<script src="../../core/runtime/engine-core.js"></script>
+<script src="../../modules/text-adventure/runtime/renderer.js"></script>
+<script src="../../modules/cutscene/runtime/cutscene.js"></script>
+<script src="../../presenters/present-dom.js"></script>
+<script src="../../presenters/present-svg.js"></script>
+<script src="../../presenters/progressions.js"></script>
+<script src="../../presenters/compose-music.js"></script>
+<script src="../../presenters/present-audio.js"></script>
+<script src="../../plugins/save.js"></script>
+<script src="../../plugins/minimap.js"></script>
+<script src="../../plugins/achievement.js"></script>
+<script src="../../plugins/reset.js"></script>
+<script src="world.js"></script>
+<script src="../../preset/boot.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

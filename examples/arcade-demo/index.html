@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh" data-ui="amatlas-dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Amatlas demo · 实时小游戏关卡「贪吃蛇门禁」</title>
+<!--
+  Amatlas arcade demo:实时小游戏(贪吃蛇)作为门禁关卡。模块化源码:核心 + present-dom + 自定义 snake 模块 + 世界数据 + boot + 启动胶水。
+  小游戏 = 一等可组合内嵌玩法模块(与 text-adventure/tabletop 同一等机制),经 manifest.modules 平权注册,核心零改动。
+  #arcade-stage 是 present-dom **不管理**的专用挂载点(canvas 挂这里才不会被每帧重渲染冲掉);#look/#choices/#place/#status 由 present-dom 管理。
+  开发期:双击本文件即玩(键盘方向键/WASD 或画布下方触屏按钮)。发布期:构建器把 <script src> 与共享 CSS 内联成单个 all-in-one HTML。
+  指引见 text-adventure-game skill 的 references/puzzles-and-minigames.md §B。复制本目录 + 改 snake-module.js 的 stepLogic/draw 即换成你的小游戏。
+-->
+<link rel="stylesheet" href="../../ui/amatlas-skins.css">
+<link rel="stylesheet" href="../../ui/touch-controls.css">   <!-- 共享:虚拟触控键帽(消费 skin token,随皮肤适配) -->
+<style>
+  /* arcade 私有边界:共享 skin 管通用 DOM chrome;小游戏 canvas 舞台与旧范本窄布局节奏由本页自管。 */
+  html[data-ui] { --amatlas-app-max: 560px; }
+  #app{padding-top:32px;}
+  #place{font-size:22px;line-height:1.7;}
+  #look>div{margin:6px 0;}
+  #status{font-size:13px;}
+  #arcade-stage{margin:14px 0;display:flex;flex-direction:column;align-items:center} /* flex-direction:column 让 canvas 置顶、controls 落到下方(rank1 fix) */
+  #arcade-stage:empty{display:none}
+  #arcade-stage canvas{border:1px solid var(--amatlas-line);border-radius:8px;background:var(--amatlas-bg);image-rendering:pixelated}
+  #reset{position:fixed;top:10px;right:10px;min-height:44px;background:transparent;border:1px solid var(--amatlas-line);color:var(--amatlas-muted);
+    border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:var(--amatlas-ui-font,inherit)}
+  #reset:hover{border-color:var(--amatlas-accent);color:var(--amatlas-accent)}
+</style>
+</head>
+<body>
+<main id="app">
+  <div id="mapname"></div>
+  <h1 id="place"></h1>
+  <div id="look"></div>
+  <div id="arcade-stage"></div>   <!-- 自定义 snake 模块把 canvas 挂这里(present-dom 不管理) -->
+  <div id="choices"></div>
+  <div id="status"></div>
+</main>
+<button id="reset">重新开始</button>
+
+<script src="../../core/runtime/engine-core.js"></script>
+<script src="../../presenters/present-dom.js"></script>   <!-- 复用:通用 View→DOM 呈现器 -->
+<script src="../../modules/text-adventure/runtime/renderer.js"></script>   <!-- 正常玩法:scene 节点(门厅/机房/离开)由它渲染;boot 据 kind:'scene' 自动拉 -->
+<script src="snake-module.js"></script>                   <!-- 自定义 arcade 玩法模块:认领 kind:'arcade'(与上面的 scene 模块组合内嵌) -->
+<script src="world.js"></script>
+<script src="../../preset/boot.js"></script>              <!-- Amatlas.boot 默认装配 -->
+<script src="game.js"></script>
+</body>
+</html>
