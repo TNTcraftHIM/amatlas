@@ -1,0 +1,1247 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Amatlas · AI 互动游戏引擎 — 几行数据,一个双击即玩的世界</title>
+<meta name="description" content="AI 互动游戏引擎:写几行数据,引擎把它编成一个零依赖的 HTML 游戏——双击即玩、离线、可分享。附 7 个在线试玩 demo。">
+<!-- 单文件落地页:CSS/JS 全内联,零外部请求。iframe 只指同级 html 且均懒加载:
+     hero 星盘中心(origin.html)+ 疆域之窗遮罩面板(点 demo 卡才装 src,合上即卸)。 -->
+<style>
+/* ============================================================
+   Amatlas 落地页 — 「制图师的星盘工作台」
+   配色锁定:午夜靛蓝 #0b1220 / 面板 #121c30 / 深阴 #070b14
+            鎏金 #c8a24a / 高光鎏金 #e6cd86 / 铜绿 #5f8a7d
+            羊皮卷 #ece3cd(墨字 #2a2118) / 文字 #e8ecf4·#9fb0c6 / 星芒 #f2e9cf
+   字体:标题 Georgia serif(碑铭字距) · 正文 system-ui · 全系统字体,无外链
+   组件语汇(2 稿,去通用面板味):demo 卡=星图铭牌 chart plate(方角双线图版框+四角刻线
+   +顶部铭章 medallion,星座连线端点=铭章圆心) · 三步=星空航路(无盒;描边罗马数字水印
+   +星形节点细航线,桌面横向/移动竖向) · 页脚=colophon 铭带(回纹分隔线,无盒,小型大写)
+   3 稿新增(整站化):顶部细导航=碑铭细带(sticky,唯一黄铜=小号下载) · 疆域之窗
+   demoport=demo 就地试玩遮罩(与世界之窗同族但独立,iframe 开装合卸) · 引擎能力=
+   轻量铭牌(无铭章无刻线,方角细金边+裸线 sigil,hover 只提亮边线;比 demo 卡低一级,
+   「作品>工具」的层级用克制表达) · 开始使用=去盒列(沿航路语汇;不编号,第三列是岔路)
+   ============================================================ */
+:root{
+  --abyss:#070b14;
+  --ink:#0b1220;
+  --panel:#121c30;
+  --panel-2:#16233a;
+  --gilt:#c8a24a;
+  --gilt-hi:#e6cd86;
+  --patina:#5f8a7d;
+  --vellum:#ece3cd;
+  --vellum-ink:#2a2118;
+  --text:#e8ecf4;
+  --muted:#9fb0c6;
+  --star:#f2e9cf;
+  --line:rgba(200,162,74,.26);
+  --line-soft:rgba(159,176,198,.16);
+  --serif:Georgia,"Times New Roman","Songti SC",serif;
+  --sans:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  --shadow:0 24px 60px -24px rgba(0,0,0,.7);
+  --nav-h:52px; /* 顶部细导航高度:hero 视高与锚点 scroll-margin 共用 */
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  font-family:var(--sans);
+  color:var(--text);
+  background:var(--ink);
+  line-height:1.7;
+  overflow-x:hidden;
+  /* 预烘焙氛围光:靛蓝天光 + 深渊晕影(radial-gradient,非实时 blur) */
+  background-image:
+    radial-gradient(1100px 720px at 50% -6%, rgba(40,64,104,.55) 0, rgba(11,18,32,0) 62%),
+    radial-gradient(900px 900px at 84% 8%, rgba(95,138,125,.10) 0, rgba(11,18,32,0) 55%),
+    radial-gradient(1200px 900px at 50% 120%, rgba(7,11,20,.9) 0, rgba(11,18,32,0) 60%);
+  background-attachment:fixed;
+}
+/* 预烘焙星场(廉价:几层 radial 点,固定平铺) */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:
+    radial-gradient(1.4px 1.4px at 12% 18%, var(--star) 50%, transparent 52%),
+    radial-gradient(1.2px 1.2px at 78% 12%, #cfe0ff 50%, transparent 52%),
+    radial-gradient(1px 1px at 34% 46%, var(--star) 50%, transparent 52%),
+    radial-gradient(1.6px 1.6px at 66% 62%, #dfe8ff 50%, transparent 52%),
+    radial-gradient(1px 1px at 88% 40%, var(--star) 50%, transparent 52%),
+    radial-gradient(1.2px 1.2px at 22% 76%, #cfe0ff 50%, transparent 52%),
+    radial-gradient(1px 1px at 52% 88%, var(--star) 50%, transparent 52%),
+    radial-gradient(1.3px 1.3px at 8% 58%, #dfe8ff 50%, transparent 52%);
+  background-repeat:no-repeat;
+}
+.wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 24px}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--gilt-hi);outline-offset:3px;border-radius:3px}
+
+/* ============================================================
+   顶部细导航 topbar(新增)
+   取向:碑铭细带,不抢星盘——.82 深底 + 1px 鎏金发丝线,链接小型大写灰蓝,
+   全条只允许一枚小号黄铜(下载),与 .we-btn 同一斜面配方。不用 backdrop-filter。
+   ============================================================ */
+.topbar{position:sticky;top:0;z-index:4; /* 低于 hero 世界之窗暗场(z5/6):世界展开时导航被聚焦暗场盖掉 */
+  background:rgba(7,11,20,.82);border-bottom:1px solid rgba(200,162,74,.18)}
+.topbar-in{max-width:1120px;margin:0 auto;padding:0 24px;height:var(--nav-h);
+  display:flex;align-items:center;gap:28px}
+.topbar-mark{font-family:var(--serif);font-size:.92rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--gilt-hi);display:inline-flex;align-items:center;gap:.55em;white-space:nowrap}
+.topbar-mark .flank{color:var(--gilt);opacity:.7;font-size:.78em}
+.topbar-links{margin-left:auto;display:flex;align-items:center;gap:26px}
+.topbar-links a{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
+  padding:4px 2px;border-bottom:1px solid transparent;white-space:nowrap;
+  transition:color .2s ease,border-color .2s ease}
+.topbar-links a:hover{color:var(--gilt-hi);border-bottom-color:rgba(200,162,74,.55)}
+/* 小号黄铜:同 .we-btn 斜面(上缘高光/下缘暗边),尺寸收到细带里 */
+.topbar-dl{font-family:var(--serif);font-size:.8rem;letter-spacing:.08em;font-weight:700;
+  color:var(--ink);background:linear-gradient(180deg,#d9bc6b,#b7913e);
+  padding:.38em 1.05em;border-radius:999px;white-space:nowrap;
+  box-shadow:0 4px 12px -5px rgba(200,162,74,.55),inset 0 1px 0 #e6cd86,inset 0 -1px 0 rgba(94,72,26,.85);
+  transition:transform .18s ease}
+.topbar-dl:hover{transform:translateY(-1px)}
+/* sticky 导航会遮住锚点标题:各 section 让出细带高度 */
+#worlds,#how,#powers,#start{scroll-margin-top:calc(var(--nav-h) + 14px)}
+
+/* ---------- 通用排版原子 ---------- */
+.eyebrow{
+  font-family:var(--sans);
+  font-size:.72rem;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--gilt);display:inline-flex;align-items:center;gap:.8em;
+  font-weight:600;
+}
+.eyebrow::before,.eyebrow.center::after{
+  content:"";width:26px;height:1px;background:linear-gradient(90deg,transparent,var(--gilt));
+}
+.eyebrow.center{justify-content:center}
+.eyebrow.center::before{background:linear-gradient(90deg,transparent,var(--gilt))}
+.eyebrow.center::after{background:linear-gradient(90deg,var(--gilt),transparent)}
+h1,h2,h3{font-family:var(--serif);font-weight:600;margin:0;letter-spacing:.02em}
+.section-h{font-size:clamp(1.7rem,3.6vw,2.5rem);line-height:1.15;margin:.5rem 0 .7rem}
+.lede{color:var(--muted);max-width:46ch;margin:0}
+.lede-sub{color:var(--muted);opacity:.72;font-size:.88rem;letter-spacing:.08em;margin:.55rem 0 0}
+
+/* 分隔:星盘式鎏金细线 + 中央罗盘钻石 */
+.rule{display:flex;align-items:center;gap:18px;margin:0 auto;max-width:520px;padding:6px 0}
+.rule::before,.rule::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--line) 40%,var(--line) 60%,transparent)}
+.rule svg{flex:none;color:var(--gilt);opacity:.8}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{position:relative;min-height:calc(100svh - var(--nav-h)); /* 抵扣 sticky 导航:CTA 行仍留在首屏内 */
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:64px 24px 40px}
+.hero-top{max-width:640px;margin:0 auto}
+.wordmark{
+  font-family:var(--serif);
+  font-size:clamp(2.7rem,9vw,5.2rem);
+  text-transform:uppercase;letter-spacing:.18em;line-height:1;
+  margin:.5rem 0 .1rem;
+  /* 黄铜金属质感:纵向 c8a24a→e6cd86 双停,不是彩虹 */
+  background:linear-gradient(176deg,var(--gilt-hi),var(--gilt) 52%,#a8863a);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 1px 0 rgba(0,0,0,.25);
+  padding-left:.18em; /* 抵消 letter-spacing 视觉偏移 */
+}
+.wordmark .flank{color:var(--gilt);-webkit-text-fill-color:var(--gilt);opacity:.62;
+  font-size:.44em;vertical-align:.42em;margin:0 .18em;letter-spacing:0}
+/* 副题升为 display 级:两行陈述,大字留白,实用参数全部退到 meta-chips */
+.hero-sub{font-family:var(--serif);font-size:clamp(1.42rem,3.8vw,2.15rem);color:var(--text);
+  margin:1.1rem auto .6rem;line-height:1.42;letter-spacing:.04em}
+.hero-note{color:var(--muted);max-width:34rem;margin:.5rem auto 0;font-size:.95rem;text-wrap:balance}
+
+/* ---- 星盘 astrolabe ---- */
+.astrolabe-stage{position:relative;width:min(78vw,500px);aspect-ratio:1;margin:34px auto 30px}
+.astrolabe{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
+.astrolabe text{font-family:var(--serif)}
+
+/* 旋转组:transform-box view-box 让 origin 落在 viewBox 坐标 */
+.spin{transform-box:view-box;transform-origin:360px 360px}
+.spin-a{animation:spin 190s linear infinite}
+.spin-b{animation:spin 150s linear infinite reverse}
+.spin-c{animation:spin 300s linear infinite}
+.rule-arm{transform-box:view-box;transform-origin:360px 360px;animation:spin 88s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.twinkle{animation:tw 4.2s ease-in-out infinite}
+.twinkle.d2{animation-delay:1.3s}
+.twinkle.d3{animation-delay:2.6s}
+@keyframes tw{0%,100%{opacity:.28}50%{opacity:1}}
+
+/* ---- 中心「世界之窗」---- */
+.world{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:41.5%;aspect-ratio:1;z-index:3}
+.world-enter{
+  position:absolute;inset:0;border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;
+  color:var(--text);cursor:pointer;
+  background:radial-gradient(circle at 50% 38%, rgba(20,30,50,.15), rgba(7,11,20,.35));
+  transition:transform .3s ease;
+}
+.world-enter:hover{transform:scale(1.03)}
+.we-status{font-size:.66rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gilt);
+  display:flex;align-items:center;gap:.5em}
+.we-status .dot{width:6px;height:6px;border-radius:50%;background:var(--gilt);
+  box-shadow:0 0 8px var(--gilt);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+/* 黄铜斜面:上缘 1px 高光 #e6cd86 + 下缘 1px 暗边(底色略压深让斜面读得出来) */
+.we-btn{font-family:var(--serif);font-size:clamp(.95rem,2.4vw,1.18rem);letter-spacing:.06em;
+  color:var(--ink);background:linear-gradient(180deg,#d9bc6b,#b7913e);
+  padding:.5em 1.15em;border-radius:999px;font-weight:700;white-space:nowrap;
+  box-shadow:0 6px 18px -6px rgba(200,162,74,.6),inset 0 1px 0 #e6cd86,inset 0 -1px 0 rgba(94,72,26,.85)}
+.we-hint{font-size:.72rem;color:var(--muted);letter-spacing:.04em}
+/* ---- 邀请带(纯渴望,无规格)+ 开始使用收尾推背 ---- */
+.invite{padding:66px 0 34px;text-align:center}
+.invite-inner{max-width:640px;margin:0 auto}
+.invite-lead{font-family:var(--serif);font-size:clamp(1.7rem,4.4vw,2.7rem);line-height:1.3;margin:0;color:var(--text);letter-spacing:.03em}
+.invite-mid{color:var(--muted);margin:1.5rem auto 0;max-width:34rem;font-size:.98rem;text-wrap:balance}
+.invite-punch{font-family:var(--serif);font-size:clamp(1.2rem,3vw,1.62rem);line-height:1.5;margin:1.3rem auto 0;color:var(--text)}
+.invite-hot{color:var(--gilt-hi);text-shadow:0 0 22px rgba(230,205,134,.3)}
+.start-punch{font-family:var(--serif);font-size:clamp(1.15rem,2.6vw,1.45rem);color:var(--text);margin:1.5rem auto .4rem;max-width:34rem;text-wrap:balance}
+
+/* 展开的世界舞台(点击后 JS 才注入 iframe src) */
+.worldstage{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.55);
+  width:min(560px,92vw);height:min(72svh,640px);
+  opacity:0;pointer-events:none;visibility:hidden;
+  border-radius:16px;overflow:hidden;z-index:6;
+  background:#0c1119;border:1px solid var(--gilt);
+  box-shadow:0 0 0 6px rgba(11,18,32,.85),0 40px 90px -30px #000,0 0 60px -20px rgba(200,162,74,.4);
+  transition:opacity .4s ease,transform .4s cubic-bezier(.2,.7,.3,1);
+}
+.astrolabe-stage.entered .worldstage{opacity:1;pointer-events:auto;visibility:visible;
+  transform:translate(-50%,-50%) scale(1)}
+.astrolabe-stage.entered .world-enter{opacity:0;pointer-events:none}
+.astrolabe-stage.entered .astrolabe{opacity:.42;transition:opacity .5s ease}
+/* 进入世界时给整屏一层聚焦暗场,让可玩世界成为前景 */
+.astrolabe-stage.entered::before{content:"";position:fixed;inset:0;z-index:5;
+  background:radial-gradient(circle at 50% 46%,rgba(7,11,20,.34),rgba(7,11,20,.87));
+  animation:scrimin .4s ease}
+@keyframes scrimin{from{opacity:0}to{opacity:1}}
+.world-frame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#0c1119}
+.world-close{position:absolute;top:8px;right:8px;z-index:2;
+  width:34px;height:34px;border-radius:50%;cursor:pointer;
+  background:rgba(7,11,20,.7);color:var(--gilt-hi);border:1px solid var(--line);
+  font-size:1.1rem;line-height:1;display:flex;align-items:center;justify-content:center}
+.world-close:hover{background:rgba(7,11,20,.95);border-color:var(--gilt)}
+.worldstage-tag,.demoport-tag{position:absolute;left:10px;top:10px;z-index:2;font-size:.62rem;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--gilt);
+  background:rgba(7,11,20,.6);padding:3px 8px;border-radius:5px;border:1px solid var(--line);
+  display:flex;align-items:center;gap:.5em;pointer-events:none}
+.worldstage-tag .dot,.demoport-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--patina);
+  box-shadow:0 0 8px var(--patina)}
+
+/* ---- CTA ---- */
+.cta-row{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:6px}
+.btn{font-family:var(--sans);font-size:1rem;font-weight:600;letter-spacing:.02em;
+  padding:.82em 1.5em;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:.5em;
+  transition:transform .18s ease,box-shadow .18s ease,background .18s ease;border:1px solid transparent}
+/* 主按钮同款黄铜斜面(形态保留,不做玻璃拟态) */
+.btn-primary{color:var(--ink);background:linear-gradient(180deg,#d9bc6b,#b7913e);
+  box-shadow:0 10px 26px -10px rgba(200,162,74,.65),inset 0 1px 0 #e6cd86,inset 0 -1px 0 rgba(94,72,26,.85)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 34px -12px rgba(200,162,74,.75),inset 0 1px 0 #e6cd86,inset 0 -1px 0 rgba(94,72,26,.85)}
+.btn-ghost{color:var(--gilt-hi);background:rgba(18,28,48,.5);border-color:var(--line)}
+.btn-ghost:hover{border-color:var(--gilt);background:rgba(22,35,58,.7);transform:translateY(-2px)}
+.meta-chips{margin-top:18px;color:var(--muted);font-size:.78rem;letter-spacing:.14em;text-transform:uppercase}
+.meta-chips b{color:var(--patina);font-weight:600}
+.beta-note{margin-top:12px;color:var(--muted);font-size:.8rem;letter-spacing:.05em;opacity:.9;max-width:44rem;margin-left:auto;margin-right:auto;text-wrap:balance}
+
+/* ============================================================
+   星图 · 七片可玩的疆域
+   ============================================================ */
+section{position:relative}
+.worlds{padding:76px 0 84px}
+.worlds-head{text-align:center;max-width:620px;margin:0 auto 44px}
+.worlds-head .lede{margin:0 auto}
+.worlds-map{position:relative}
+/* 星座连线层(JS 按卡片 sigil 真实坐标绘制,连的是真 demo) */
+.constellation{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:visible}
+.constellation polyline{fill:none;stroke:var(--gilt);stroke-width:1.1;opacity:.58;
+  stroke-dasharray:2 5.5;stroke-linecap:round;
+  filter:drop-shadow(0 0 3px rgba(200,162,74,.45));
+  transition:opacity .3s ease,stroke-width .3s ease}
+.worlds-map:hover .constellation polyline{opacity:.72}
+.constellation circle{fill:var(--star);opacity:.92;filter:drop-shadow(0 0 4px rgba(242,233,207,.8))}
+
+.worlds-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:52px 22px;position:relative;z-index:1;padding-top:30px}
+/* —— 星图铭牌 chart plate ——
+   方角(radius 2px)双线图版框:外线 .28 / 内线 .10(以 opacity 换 hover 提亮,只动 opacity)
+   四角刻线=框线越角延伸,如铜版套准记号;底 #121c30 + 极淡 vignette + 按 --i 错位的两颗定位星 */
+.demo{
+  position:relative;display:flex;flex-direction:column;align-items:center;gap:.4rem;
+  padding:42px 22px 22px;border-radius:2px;text-align:center;
+  background:
+    radial-gradient(1.3px 1.3px at calc(16% + var(--i,0)*9%) 24%, rgba(242,233,207,.5) 50%, transparent 52%),
+    radial-gradient(1px 1px at calc(84% - var(--i,0)*8%) calc(58% + var(--i,0)*5%), rgba(207,224,255,.38) 50%, transparent 52%),
+    radial-gradient(140% 100% at 50% -10%, rgba(230,205,134,.05), transparent 48%),
+    radial-gradient(160% 120% at 50% 118%, rgba(7,11,20,.6), transparent 60%),
+    var(--panel);
+  border:1px solid rgba(200,162,74,.28);
+  box-shadow:0 20px 44px -34px #000;
+  transition:transform .22s ease;
+  min-height:230px;color:var(--text)}
+.demo::before{content:"";position:absolute;inset:5px;border:1px solid rgba(200,162,74,.32);
+  opacity:.32;pointer-events:none;transition:opacity .25s ease}
+.demo::after{
+  content:"";position:absolute;inset:-6px;pointer-events:none;opacity:.5;transition:opacity .25s ease;
+  background-image:
+    linear-gradient(#c8a24a,#c8a24a),linear-gradient(#c8a24a,#c8a24a),
+    linear-gradient(#c8a24a,#c8a24a),linear-gradient(#c8a24a,#c8a24a),
+    linear-gradient(#c8a24a,#c8a24a),linear-gradient(#c8a24a,#c8a24a),
+    linear-gradient(#c8a24a,#c8a24a),linear-gradient(#c8a24a,#c8a24a);
+  background-position:left 0 top 6px,left 6px top 0,right 0 top 6px,right 6px top 0,
+    left 0 bottom 6px,left 6px bottom 0,right 0 bottom 6px,right 6px bottom 0;
+  background-size:13px 1px,1px 13px,13px 1px,1px 13px,13px 1px,1px 13px,13px 1px,1px 13px;
+  background-repeat:no-repeat}
+.demo:hover,.demo:focus-visible{transform:translateY(-4px)}
+.demo:hover::before,.demo:focus-visible::before{opacity:1}
+.demo:hover::after,.demo:focus-visible::after{opacity:.95}
+.demo:hover .sigil,.demo:focus-visible .sigil{transform:translate(-50%,-50%) scale(1.06);color:var(--gilt-hi)}
+.demo:hover .sigil::after,.demo:focus-visible .sigil::after{opacity:1}
+.demo:hover .sigil-halo,.demo:focus-visible .sigil-halo{opacity:1}
+/* 铭章 medallion:半嵌牌顶的小圆环+刻度圈;星座连线端点=此圆心(JS 取 .sigil 中心)
+   圆心上浮 6px:让连线走在牌顶上方的空场,不被不透明牌身吞掉 */
+.sigil{
+  position:absolute;top:-6px;left:50%;transform:translate(-50%,-50%);
+  width:54px;height:54px;border-radius:50%;color:var(--gilt);
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 40%,#182742,#0c1526 72%);
+  border:1px solid rgba(200,162,74,.55);
+  box-shadow:0 0 0 5px rgba(11,18,32,.92);
+  transition:transform .25s ease,color .25s ease}
+.sigil svg{width:22px;height:22px;position:relative}
+.sigil::after{content:"";position:absolute;inset:3px;border-radius:50%;opacity:.5;transition:opacity .3s ease;
+  background:repeating-conic-gradient(rgba(230,205,134,.9) 0 2deg,transparent 2deg 15deg);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));
+  mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px))}
+.sigil-halo{position:absolute;inset:-12px;border-radius:50%;pointer-events:none;opacity:0;
+  background:radial-gradient(circle,rgba(230,205,134,.38),transparent 66%);transition:opacity .3s ease}
+/* 碑铭式类型标签:小型大写+两侧细线(胶囊 chip 移除) */
+.demo-tag{display:inline-flex;align-items:center;gap:.75em;margin-top:2px;
+  font-size:.66rem;letter-spacing:.26em;text-transform:uppercase;color:rgba(230,205,134,.92);white-space:nowrap}
+.demo-tag::before,.demo-tag::after{content:"";width:20px;height:1px;background:currentColor;opacity:.5}
+.demo h3{font-size:1.5rem;line-height:1.1;margin-top:2px}
+.demo .latin{font-size:.62rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gilt);opacity:.66}
+.demo p{margin:.3rem 0 0;color:var(--muted);font-size:.92rem;line-height:1.62;max-width:26ch;text-wrap:balance}
+.demo .go{margin-top:auto;padding-top:14px;color:var(--gilt-hi);font-size:.85rem;letter-spacing:.1em;
+  display:inline-flex;align-items:center;gap:.4em;font-weight:600}
+.demo .go .arw{transition:transform .2s ease}
+.demo:hover .go .arw{transform:translateX(4px)}
+/* 初火:起笔之牌,末行居中收束星图,微染铜绿 */
+.demo.seed{grid-column:2;border-color:rgba(95,138,125,.42);
+  background:
+    radial-gradient(1.3px 1.3px at 70% 24%, rgba(242,233,207,.5) 50%, transparent 52%),
+    linear-gradient(180deg,rgba(95,138,125,.13),rgba(95,138,125,0) 60%),
+    radial-gradient(160% 120% at 50% 118%, rgba(7,11,20,.6), transparent 60%),
+    var(--panel)}
+.demo.seed .demo-tag{color:rgba(139,178,164,.85)}
+
+/* ============================================================
+   它怎么运作 · 三步(真实次序 → 用罗马数字 I·II·III,呼应星盘刻度)
+   ============================================================ */
+.how{padding:20px 0 90px}
+.how-head{text-align:center;max-width:620px;margin:0 auto 44px}
+.how-head .lede{margin:0 auto}
+/* —— 去盒化航路:三列直接排在星空上;细航线穿过三枚星形节点(桌面横向/移动竖向),
+   每列背后一枚鎏金描边罗马数字水印(z-index:-1,受 .wrap 的层叠上下文兜底,不会沉到星空之下) —— */
+.steps{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:0 32px;align-items:start;margin-top:38px}
+.steps::before{content:"";position:absolute;top:10px;height:1px;
+  left:calc((100% - 64px)/6);right:calc((100% - 64px)/6);
+  background:linear-gradient(90deg,transparent,var(--line) 9%,var(--line) 91%,transparent)}
+.step{position:relative;padding:36px 6px 0;text-align:center;display:flex;flex-direction:column;align-items:center}
+.step::after{content:"✦";position:absolute;top:10px;left:50%;transform:translate(-50%,-50%);
+  font-size:.9rem;line-height:1;color:var(--gilt);text-shadow:0 0 10px rgba(200,162,74,.55);
+  padding:5px;background:radial-gradient(circle,var(--ink) 42%,transparent 70%)}
+.step .num{position:absolute;top:24px;left:50%;transform:translateX(-50%);z-index:-1;
+  font-family:var(--serif);font-size:clamp(4.8rem,8vw,6.6rem);line-height:1;letter-spacing:.02em;
+  color:rgba(200,162,74,.1)}
+@supports(-webkit-text-stroke:1px #000){
+  .step .num{color:transparent;-webkit-text-stroke:1px rgba(200,162,74,.28)}
+}
+.step h3{font-size:1.3rem;margin:2.6rem 0 .45rem;letter-spacing:.14em}
+/* 双轨标题:诗名(落笔)+ 人话注(写下数据)——每个意象旁边都有一句实话锚点 */
+.step h3 .gloss{display:inline-block;margin-left:.7em;font-family:var(--sans);font-weight:500;
+  font-size:.66em;letter-spacing:.14em;color:var(--muted);vertical-align:.12em}
+.step h3 .gloss::before{content:"·";margin-right:.7em;color:var(--gilt);opacity:.6}
+.step p{color:var(--muted);margin:0;font-size:.94rem;max-width:30ch;text-wrap:balance}
+/* 步骤一:羊皮卷卡图(cartouche)——唯一大面积羊皮/骨白表面 */
+.cartouche{margin-top:18px;border-radius:8px;padding:14px 16px;width:100%;text-align:left;
+  background:linear-gradient(180deg,#efe7d2,var(--vellum));color:var(--vellum-ink);
+  border:1px solid #cbb98f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4),0 10px 24px -14px #000;
+  font-family:var(--serif);font-size:.82rem;line-height:1.6}
+.cartouche .k{color:#8a5a1f}
+.cartouche .s{color:#3f6a3a}
+.cartouche .c{color:#7a6548;font-style:italic}
+.cartouche pre{margin:0;white-space:pre-wrap;font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;font-size:.78rem}
+.cart-cap{margin:10px 0 0;font-size:.68rem;letter-spacing:.22em;color:var(--muted);opacity:.85}
+/* —— 步骤 II/III 的锚:与「落笔」羊皮卡图视觉齐平的暗色器械牌(与 .demo 铭牌同族,更小更素:
+   方角 2px + 1px 细金边 + 素面 --panel;暖色羊皮为「落笔」孤例,这两枚走冷调器械风,补平三列 —— */
+.step-anchor{margin-top:18px;width:100%;border-radius:2px;color:var(--text);
+  background:radial-gradient(150% 130% at 50% 120%, rgba(7,11,20,.5), transparent 60%),var(--panel);
+  border:1px solid rgba(200,162,74,.28);box-shadow:0 14px 32px -26px #000}
+/* 审计票据 ledger:三行审计项 + 鎏金对勾;坏字段一行亮红 ✕ + 红描边(fail-loud 当场报红) */
+.ledger{padding:14px 14px 15px}
+.lg-row{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:11px 6px 11px 13px;border:1px solid rgba(200,162,74,.16);border-radius:2px;
+  background:rgba(200,162,74,.045)}
+.lg-row + .lg-row{margin-top:9px}
+.lg-item{font-family:var(--serif);font-size:.94rem;letter-spacing:.1em}
+.lg-mark{flex:none;min-width:2em;padding-left:11px;text-align:center;line-height:1;
+  font-size:.95rem;color:var(--gilt-hi);border-left:1px solid rgba(200,162,74,.22);
+  text-shadow:0 0 8px rgba(200,162,74,.5)}
+.lg-row.bad{border-color:#c0553f;background:rgba(192,85,63,.12);
+  box-shadow:0 0 0 1px rgba(192,85,63,.3),0 0 16px -5px rgba(192,85,63,.7)}
+.lg-row.bad .lg-item{color:#e6a695}
+.lg-row.bad .lg-mark{color:#df6a52;font-weight:700;border-left-color:rgba(192,85,63,.5);
+  text-shadow:0 0 9px rgba(214,85,63,.7)}
+/* 单文件封印 seal:单 HTML 文件线描(鎏金描边、右下折角)+ 印章徽记 1 file · 0 deps */
+.seal{padding:15px 16px 15px;display:flex;flex-direction:column;align-items:center}
+.seal-fig{width:100%;max-width:200px;height:auto;display:block}
+/* 两枚锚共用碑铭小字(镜 .cart-cap;.step 已 text-align:center,自动居中收束) */
+.anchor-cap{margin:12px 0 0;font-size:.68rem;letter-spacing:.22em;color:var(--muted);opacity:.85}
+
+/* ============================================================
+   页脚 · 卡图
+   ============================================================ */
+/* —— colophon 铭带:无盒;上缘回纹(meander)分隔,内容居中,链接小型大写 —— */
+.foot{padding:34px 0 58px;position:relative;text-align:center}
+.foot-rule{display:flex;align-items:center;gap:16px;max-width:560px;margin:0 auto 36px;padding:6px 0}
+.foot-rule::before,.foot-rule::after{content:"";flex:1;height:1px}
+.foot-rule::before{background:linear-gradient(90deg,transparent,var(--line))}
+.foot-rule::after{background:linear-gradient(90deg,var(--line),transparent)}
+.foot-rule svg{flex:none;color:var(--gilt);opacity:.62}
+.foot-inner{display:flex;flex-direction:column;align-items:center;gap:8px}
+.foot-wordmark{font-family:var(--serif);text-transform:uppercase;letter-spacing:.24em;
+  font-size:1.35rem;color:var(--gilt-hi)}
+.foot-tag{font-family:var(--serif);color:var(--text);opacity:.82;font-size:1.02rem;margin:0;letter-spacing:.03em}
+.foot-links{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 34px;margin-top:16px}
+.foot-links a{font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);
+  padding:3px 2px;border-bottom:1px solid transparent;transition:color .2s ease,border-color .2s ease}
+.foot-links a:hover{color:var(--gilt-hi);border-bottom-color:rgba(200,162,74,.55)}
+.foot-links a.dl{color:var(--gilt)}
+.foot-links a.dl:hover{color:var(--gilt-hi)}
+.colophon{margin-top:34px;text-align:center;color:var(--muted);font-size:.7rem;
+  letter-spacing:.22em;text-transform:uppercase;opacity:.8}
+
+/* ============================================================
+   引擎能力 · 轻量铭牌(新增)
+   取向:比星图铭牌低一级的"工坊器物牌"——无铭章、无四角刻线,只 1px 细金边
+   +2px 方角+素面 --panel;左上一枚裸线 sigil(stroke 1.4 同族);hover 只提亮边线。
+   刻意收敛:demo 卡是「作品」,这里是「工具」,层级用克制表达。
+   ============================================================ */
+.powers{padding:20px 0 90px}
+.powers-head{text-align:center;max-width:620px;margin:0 auto 40px}
+.powers-head .lede{margin:0 auto}
+/* 这两节 lede 比 46ch 长一截,不平衡折行会剩孤字("用。"独行)——balance 与 hero-note 同法 */
+.powers-head .lede,.start-head .lede{text-wrap:balance}
+.powers-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.power{position:relative;background:var(--panel);border:1px solid rgba(200,162,74,.2);
+  border-radius:2px;padding:22px 22px 24px;text-align:left;
+  transition:border-color .25s ease}
+.power:hover{border-color:rgba(200,162,74,.5)}
+.power-sigil{display:inline-flex;color:var(--gilt);opacity:.92}
+.power-sigil svg{width:22px;height:22px}
+.power h3{font-size:1.15rem;letter-spacing:.08em;margin:.85rem 0 .3rem}
+.power p{margin:0;color:var(--muted);font-size:.9rem;line-height:1.66}
+
+/* ============================================================
+   开始使用(新增)
+   取向:沿用「三步航路」的去盒列语汇,但不用罗马数字——第三项是"或者亲手来",
+   是岔路不是次序,结构不撒谎;列首用小星形节点(✦,与航路节点同符)。
+   ============================================================ */
+.start{padding:20px 0 96px}
+.start-head{text-align:center;max-width:620px;margin:0 auto 8px}
+.start-head .lede{margin:0 auto}
+.start-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:34px 32px;margin-top:38px;text-align:left}
+.start-item h3{font-size:1.18rem;letter-spacing:.1em;margin:0 0 .45rem;
+  display:flex;align-items:baseline;gap:.55em}
+.start-item h3 .node{font-family:var(--sans);font-size:.72rem;color:var(--gilt);flex:none;
+  text-shadow:0 0 10px rgba(200,162,74,.55)}
+.start-item p{margin:0;color:var(--muted);font-size:.94rem;line-height:1.68}
+/* 金线引用:左侧 2px 鎏金竖线,serif,可选中复制(给 AI 的第一句话) */
+.incant{margin:16px 0 0;padding:2px 0 2px 14px;border-left:2px solid var(--gilt);
+  font-family:var(--serif);font-size:.95rem;line-height:1.7;color:var(--text);letter-spacing:.02em}
+.start-foot{text-align:center;margin-top:38px}
+.start-foot .lede-sub{margin:0 0 22px}
+
+/* ============================================================
+   疆域之窗 demoport(新增)
+   demo 卡就地试玩的全局遮罩面板。与世界之窗同族(#0c1119 底/1px 鎏金边/外圈深阴影)
+   但独立组件:方窗 12px 圆角、居中 fixed;iframe 打开才装 src、合上即卸(停声停帧)。
+   无 JS:.demo 保持真链接原生跳转,本组件恒隐。
+   ============================================================ */
+.demoport{position:fixed;inset:0;z-index:60;opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .3s ease,visibility 0s linear .3s}
+.demoport.open{opacity:1;visibility:visible;pointer-events:auto;
+  transition:opacity .3s ease,visibility 0s}
+.demoport-scrim{position:absolute;inset:0;cursor:pointer;
+  background:radial-gradient(circle at 50% 46%,rgba(7,11,20,.86),rgba(7,11,20,.95))}
+.demoport-panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.97);
+  width:min(1080px,94vw);height:min(86svh,760px);
+  display:flex;flex-direction:column; /* 标题栏在上、iframe 在下,永不重叠 */
+  border-radius:12px;overflow:hidden;background:#0c1119;border:1px solid var(--gilt);
+  box-shadow:0 0 0 6px rgba(11,18,32,.85),0 40px 90px -30px #000,0 0 60px -20px rgba(200,162,74,.4);
+  transition:transform .35s cubic-bezier(.2,.7,.3,1)}
+.demoport.open .demoport-panel{transform:translate(-50%,-50%) scale(1)}
+/* 独立标题栏(P1-3):tag 左 / actions 右,一行 space-between,底部一条鎏金发丝线;
+   替代原先浮在 iframe 上的 absolute tag/actions —— 窄屏不再压住游戏自己的工具栏 */
+.demoport-bar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  height:48px;padding:0 8px 0 10px;border-bottom:1px solid var(--line);background:rgba(7,11,20,.55)}
+.demoport-frame{flex:1 1 auto;width:100%;min-height:0;border:0;background:#0c1119;display:block}
+/* tag/actions 从浮层改为标题栏内的常规流式子元素(覆写上方 .worldstage-tag,.demoport-tag 的 absolute) */
+.demoport-tag{position:static;left:auto;top:auto;flex:none}
+.demoport-actions{position:static;top:auto;right:auto;flex:none;display:flex;align-items:center;gap:8px}
+.demoport-ext{font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gilt-hi);
+  background:rgba(7,11,20,.7);border:1px solid var(--line);border-radius:5px;padding:0 12px;
+  min-height:44px;display:inline-flex;align-items:center; /* P2-4:触控命中区 ≥44px */
+  white-space:nowrap;transition:border-color .2s ease,background .2s ease}
+.demoport-ext:hover{border-color:var(--gilt);background:rgba(7,11,20,.95)}
+.demoport-close{width:44px;height:44px;border-radius:50%;cursor:pointer;flex:none; /* P2-4:34→44 好点 */
+  background:rgba(7,11,20,.7);color:var(--gilt-hi);border:1px solid var(--line);
+  font-size:1.1rem;line-height:1;display:flex;align-items:center;justify-content:center}
+.demoport-close:hover{background:rgba(7,11,20,.95);border-color:var(--gilt)}
+/* ---------- 触控命中区 ≥44px(P2-4:透明 ::after 覆盖层扩大命中,不动可视尺寸/下划线) ---------- */
+.topbar-links a,.topbar-dl,.foot-links a{position:relative}
+.topbar-links a::after,.topbar-dl::after,.foot-links a::after{
+  content:"";position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);min-width:44px;height:44px}
+
+/* ---------- reveal(仅 JS 且非 reduced 时先隐后现;无 JS 恒显) ---------- */
+.js .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.js .reveal.in{opacity:1;transform:none}
+
+/* ============================================================
+   响应式
+   ============================================================ */
+@media (max-width:860px){
+  .worlds-grid{grid-template-columns:repeat(2,1fr);gap:48px 18px}
+  .demo.seed{grid-column:1 / -1}
+  .constellation{display:none} /* 移动端收起连线,铭牌保持清爽 */
+  /* 航路转竖向:左侧航线,星形节点随列 */
+  .steps{grid-template-columns:1fr;gap:40px;margin-top:26px}
+  .steps::before{top:8px;bottom:4px;left:9px;right:auto;width:1px;height:auto;
+    background:linear-gradient(180deg,transparent,var(--line) 7%,var(--line) 93%,transparent)}
+  .step{padding:0 0 0 42px;text-align:left;align-items:flex-start}
+  .step::after{top:8px;left:9px;transform:translate(-50%,0)}
+  .step .num{left:auto;right:2px;top:-16px;transform:none;font-size:4.8rem}
+  .step h3{margin-top:0}
+  .step p{max-width:none}
+  .powers-grid{grid-template-columns:repeat(2,1fr);gap:14px}
+  .start-grid{grid-template-columns:1fr;gap:28px}
+}
+@media (max-width:700px){
+  /* 窄屏保留四锚点:压缩成一行可横向滚动的紧凑导航(隐藏滚动条),字标+下载不删 */
+  .topbar-in{gap:12px}
+  .topbar-links{margin-left:12px;flex:1 1 auto;min-width:0;gap:16px;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
+  .topbar-links::-webkit-scrollbar{display:none}
+  .topbar-links a{flex:none;font-size:.62rem;letter-spacing:.14em;white-space:nowrap}
+  /* 遮罩窗转全屏(留 8px 呼吸边);transform 双态一起清零,防与居中位移打架 */
+  .demoport-panel,.demoport.open .demoport-panel{
+    left:8px;right:8px;top:8px;bottom:8px;width:auto;height:auto;transform:none}
+}
+@media (max-width:560px){
+  .powers-grid{grid-template-columns:1fr}
+  .worlds-grid{grid-template-columns:1fr;gap:46px}
+  .astrolabe-stage{width:88vw}
+  .hero{padding-top:52px}
+  .eyebrow{letter-spacing:.22em;font-size:.68rem}
+  .foot-links{gap:10px 22px}
+}
+
+/* ---------- 尊重 prefers-reduced-motion ---------- */
+@media (prefers-reduced-motion:reduce){
+  .spin-a,.spin-b,.spin-c,.rule-arm,.twinkle,.we-status .dot{animation:none!important}
+  .js .reveal{opacity:1;transform:none}
+  .worldstage{transition:opacity .001s}
+  .demoport,.demoport.open{transition:opacity .001s,visibility 0s}
+  .demoport-panel{transition:none}
+  /* hover/focus 的位移与缩放全部清零(这些元素基态本就无 transform,清零安全;
+     .sigil/.world/.demoport-panel 等定位型 transform 不在此列,保持不动) */
+  .demo:hover,.demo:focus-visible,.world-enter:hover,
+  .btn:hover,.btn-primary:hover,.btn-ghost:hover,.topbar-dl:hover,
+  .demo:hover .go .arw,.demo:focus-visible .go .arw{transform:none!important}
+  .demo,.world-enter,.btn,.btn-primary,.btn-ghost,.we-btn,.topbar-dl,.go .arw,.power{transition:none!important}
+  *{scroll-behavior:auto}
+}
+html{scroll-behavior:smooth}
+/* 修复:上面 reduce 块里的 * 特异性为 0,压不过 html{smooth}——减动效下锚点仍在动画。
+   置后同特异性覆写,导航锚点在 reduced-motion 下瞬时到位 */
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<!-- ============================ 顶部细导航 ============================ -->
+<nav class="topbar" aria-label="站内导航">
+  <div class="topbar-in">
+    <a class="topbar-mark" href="#top"><span class="flank" aria-hidden="true">✦</span>Amatlas</a>
+    <div class="topbar-links">
+      <a href="#worlds">七个世界</a>
+      <a href="#how">怎么运作</a>
+      <a href="#powers">引擎能力</a>
+      <a href="#start">开始使用</a>
+    </div>
+    <a class="topbar-dl" href="https://github.com/TNTcraftHIM/amatlas/releases/latest">下载</a>
+  </div>
+</nav>
+
+<!-- ============================ HERO ============================ -->
+<header class="hero" id="top">
+  <div class="hero-top">
+    <span class="eyebrow center">AI 互动游戏引擎</span>
+    <h1 class="wordmark"><span class="flank">✦</span>Amatlas<span class="flank">✦</span></h1>
+    <p class="hero-sub">落笔是几行数据,<br>抬头已是一个世界。</p>
+    <p class="hero-note">它曾扛起整片星空;现在,它托起你写下的世界——编成一个文件,双击即玩。</p>
+  </div>
+
+  <!-- 签名元素:黄铜星盘,中心嵌可玩世界 -->
+  <div class="astrolabe-stage" id="astrolabe">
+    <svg class="astrolabe" viewBox="0 0 720 720" role="img" aria-label="缓缓自转的黄铜星盘,中心是一扇通往可玩世界的窗">
+      <defs>
+        <radialGradient id="disc" cx="50%" cy="40%" r="75%">
+          <stop offset="0%" stop-color="#16233b"/>
+          <stop offset="62%" stop-color="#0d1626"/>
+          <stop offset="100%" stop-color="#070b14"/>
+        </radialGradient>
+        <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="rgba(200,162,74,.16)"/>
+          <stop offset="100%" stop-color="rgba(200,162,74,0)"/>
+        </radialGradient>
+        <linearGradient id="brass" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#e6cd86"/>
+          <stop offset="100%" stop-color="#a8863a"/>
+        </linearGradient>
+        <clipPath id="port"><circle cx="360" cy="360" r="146"/></clipPath>
+        <!-- 注:SVG 呈现属性不解析 CSS var(),下方描边/填充用锁定的 hex 直写 -->
+        <!-- #c8a24a 鎏金 · #e6cd86 高光 · #5f8a7d 铜绿 · #f2e9cf 星芒 -->
+      </defs>
+
+      <!-- 背光晕 -->
+      <circle cx="360" cy="360" r="352" fill="url(#glow)"/>
+
+      <!-- 外缘刻度带(spin-a):dasharray 造刻度,零 JS -->
+      <g class="spin spin-a">
+        <circle cx="360" cy="360" r="338" fill="none" stroke="#c8a24a" stroke-width="1.2" opacity=".85"/>
+        <circle cx="360" cy="360" r="326" fill="none" stroke="#c8a24a" stroke-width="10"
+                stroke-dasharray="1.1 8.34" opacity=".55"/>
+        <circle cx="360" cy="360" r="318" fill="none" stroke="#c8a24a" stroke-width="0.8" opacity=".5"/>
+        <!-- 12 房主刻(长径向线) -->
+        <g stroke="#c8a24a" stroke-width="1.4" opacity=".8">
+          <line x1="360" y1="22" x2="360" y2="52"/><line x1="360" y1="668" x2="360" y2="698"/>
+          <line x1="22" y1="360" x2="52" y2="360"/><line x1="668" y1="360" x2="698" y2="360"/>
+          <line x1="120" y1="120" x2="141" y2="141"/><line x1="600" y1="120" x2="579" y2="141"/>
+          <line x1="120" y1="600" x2="141" y2="579"/><line x1="600" y1="600" x2="579" y2="579"/>
+          <line x1="238" y1="35" x2="248" y2="63"/><line x1="482" y1="35" x2="472" y2="63"/>
+          <line x1="35" y1="238" x2="63" y2="248"/><line x1="685" y1="238" x2="657" y2="248"/>
+          <line x1="35" y1="482" x2="63" y2="472"/><line x1="685" y1="482" x2="657" y2="472"/>
+          <line x1="238" y1="685" x2="248" y2="657"/><line x1="482" y1="685" x2="472" y2="657"/>
+        </g>
+      </g>
+
+      <!-- 十二宫罗马数字环:静止、恒正、始终可读(移动的天 / 不动的框) -->
+      <g fill="#e6cd86" opacity=".92" font-size="20" text-anchor="middle" style="letter-spacing:.04em">
+        <text x="360" y="82">XII</text><text x="503" y="120">I</text><text x="607" y="224">II</text>
+        <text x="645" y="367">III</text><text x="607" y="510">IV</text><text x="503" y="614">V</text>
+        <text x="360" y="652">VI</text><text x="217" y="614">VII</text><text x="113" y="510">VIII</text>
+        <text x="75" y="367">IX</text><text x="113" y="224">X</text><text x="217" y="120">XI</text>
+      </g>
+
+      <!-- 中环刻度(spin-b 反向) -->
+      <g class="spin spin-b">
+        <circle cx="360" cy="360" r="288" fill="none" stroke="#c8a24a" stroke-width="1" opacity=".6"/>
+        <circle cx="360" cy="360" r="278" fill="none" stroke="#c8a24a" stroke-width="6"
+                stroke-dasharray="0.8 6.5" opacity=".42"/>
+        <circle cx="360" cy="360" r="268" fill="none" stroke="#5f8a7d" stroke-width="1" opacity=".5"/>
+      </g>
+
+      <!-- 黄道倾环(armillary 立体感,spin-c 极慢) -->
+      <g class="spin spin-c">
+        <ellipse cx="360" cy="360" rx="246" ry="150" fill="none" stroke="#c8a24a" stroke-width="1.1"
+                 opacity=".55" transform="rotate(-18 360 360)"/>
+        <ellipse cx="360" cy="360" rx="150" ry="246" fill="none" stroke="#5f8a7d" stroke-width="1"
+                 opacity=".38" transform="rotate(-18 360 360)"/>
+        <circle cx="360" cy="360" r="228" fill="none" stroke="#c8a24a" stroke-width="1" opacity=".45"/>
+      </g>
+
+      <!-- 星盘星点(部分闪烁) -->
+      <g fill="#f2e9cf">
+        <path class="twinkle" d="M170 250l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/>
+        <path class="twinkle d2" d="M556 214l2.6 8 8 2.6-8 2.6-2.6 8-2.6-8-8-2.6 8-2.6z"/>
+        <path class="twinkle d3" d="M300 150l2.4 7 7 2.4-7 2.4-2.4 7-2.4-7-7-2.4 7-2.4z"/>
+        <path class="twinkle d2" d="M540 470l2.6 8 8 2.6-8 2.6-2.6 8-2.6-8-8-2.6 8-2.6z"/>
+        <path class="twinkle" d="M196 486l2.4 7 7 2.4-7 2.4-2.4 7-2.4-7-7-2.4 7-2.4z"/>
+        <path class="twinkle d3" d="M430 560l2.2 6.6 6.6 2.2-6.6 2.2-2.2 6.6-2.2-6.6-6.6-2.2 6.6-2.2z"/>
+        <circle cx="250" cy="190" r="1.6"/><circle cx="470" cy="176" r="1.4"/>
+        <circle cx="590" cy="330" r="1.6"/><circle cx="150" cy="400" r="1.4"/>
+        <circle cx="360" cy="120" r="1.5"/><circle cx="470" cy="548" r="1.4"/>
+      </g>
+
+      <!-- 观测照准规(rule/alidade):全径,极慢转;中心被世界之窗盖住,只露两端 -->
+      <g class="rule-arm" opacity=".9">
+        <line x1="360" y1="120" x2="360" y2="600" stroke="#c8a24a" stroke-width="2.4"/>
+        <path d="M360 118 l7 16 -14 0z" fill="url(#brass)"/>
+        <path d="M360 602 l7 -16 -14 0z" fill="url(#brass)"/>
+        <circle cx="360" cy="360" r="7" fill="none" stroke="#c8a24a" stroke-width="1.4"/>
+      </g>
+
+      <!-- 中心「世界之窗」圆盘:未画完的世界(SVG 预烘焙,零 JS 亦可见) -->
+      <g clip-path="url(#port)">
+        <circle cx="360" cy="360" r="146" fill="url(#disc)"/>
+        <!-- 半染的海岸:天光带 + 海平线 + 未上色的前滩 -->
+        <rect x="214" y="214" width="292" height="150" fill="#15243c" opacity=".9"/>
+        <rect x="214" y="360" width="292" height="60" fill="#243f57" opacity=".55"/>
+        <rect x="214" y="410" width="292" height="96" fill="#8f9a8e" opacity=".16"/>
+        <ellipse cx="360" cy="372" rx="150" ry="26" fill="rgba(200,162,74,.14)"/>
+        <line x1="214" y1="404" x2="506" y2="404" stroke="rgba(230,205,134,.3)" stroke-width="1"/>
+        <!-- 远处灯塔一抹 + 星 -->
+        <line x1="452" y1="352" x2="452" y2="404" stroke="rgba(236,227,205,.5)" stroke-width="2"/>
+        <circle cx="452" cy="350" r="2.4" fill="#f2e9cf"/>
+        <circle cx="300" cy="286" r="1.6" fill="#f2e9cf"/>
+        <circle cx="392" cy="262" r="1.3" fill="#f2e9cf"/>
+        <path d="M262 300l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="#f2e9cf" opacity=".8"/>
+      </g>
+      <!-- 世界之窗黄铜镜圈 -->
+      <circle cx="360" cy="360" r="146" fill="none" stroke="url(#brass)" stroke-width="4"/>
+      <circle cx="360" cy="360" r="152" fill="none" stroke="#c8a24a" stroke-width="1" opacity=".6"/>
+      <circle cx="360" cy="360" r="140" fill="none" stroke="rgba(7,11,20,.6)" stroke-width="2"/>
+    </svg>
+
+    <!-- 世界之窗触发层:点「点亮这个世界」→ JS 打开与 demo 卡**同一套**疆域之窗遮罩(body 级,
+         载入 origin.html);无 JS → 此真链接在新标签打开 origin.html。
+         关闭即卸载 iframe → 真停 BGM/rAF,样式与 demo 一致,点面板内不误关。 -->
+    <div class="world">
+      <a class="world-enter" href="origin.html" target="_blank" rel="noopener"
+         data-port-title="承星者 · 用 Amatlas 做的起始故事" data-port-tag="承星者 · 起始故事"
+         aria-label="点亮星盘中心的世界,就地开始">
+        <span class="we-status"><span class="dot"></span>世界之窗 · 尚在沉睡</span>
+        <span class="we-btn">点亮这个世界</span>
+        <span class="we-hint">《承星者》—— 这个可玩的小世界,本身就是用 Amatlas 做的。</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="cta-row">
+    <a class="btn btn-primary" href="https://github.com/TNTcraftHIM/amatlas/releases/latest">下载引擎</a>
+    <a class="btn btn-ghost" href="#how">看它如何造世界 →</a>
+  </div>
+  <p class="meta-chips">成品一个文件 · 零依赖 · 离线 · 双击即玩 · <b>MIT 开源</b></p>
+  <p class="beta-note">0.1.2 测试版 · 欢迎试用与反馈</p>
+</header>
+
+<div class="rule" aria-hidden="true">
+  <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 0l1.6 6.4L16 8l-6.4 1.6L8 16l-1.6-6.4L0 8l6.4-1.6z" fill="currentColor"/></svg>
+</div>
+
+<!-- ============================ 星图 · 七片疆域 ============================ -->
+<section class="worlds" id="worlds">
+  <div class="wrap">
+    <div class="worlds-head reveal">
+      <span class="eyebrow center">SEPTEM MVNDI · 七个世界</span>
+      <h2 class="section-h">星图上的七处疆域</h2>
+      <p class="lede">七种玩法,七个已经点亮的世界。</p>
+      <p class="lede-sub">点开就玩,不用装任何东西。</p>
+    </div>
+
+    <div class="worlds-map reveal">
+      <svg class="constellation" aria-hidden="true"><polyline points=""></polyline></svg>
+      <div class="worlds-grid">
+
+        <a class="demo" href="text-adventure-demo.html" style="--i:0">
+          <span class="sigil" aria-hidden="true"><span class="sigil-halo"></span>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 17c3-3 5-3 9 0s6 2 9-1"/><path d="M3 12c3-3 5-3 9 0s6 2 9-1"/><circle cx="18" cy="5" r="1.4" fill="currentColor" stroke="none"/></svg></span>
+          <span class="demo-tag">文字冒险</span>
+          <h3>墨岸</h3><span class="latin">Littora</span>
+          <p>一册由选择装订的岸——场景、分支与生成配乐,一路翻到底。</p>
+          <span class="go">进入 <span class="arw">→</span></span>
+        </a>
+
+        <a class="demo" href="cutscene-demo.html" style="--i:1">
+          <span class="sigil" aria-hidden="true"><span class="sigil-halo"></span>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3v7"/><path d="M8 10h8l3 10H5z"/><path d="M12 3l4 3-4 1-4-1z" fill="currentColor"/></svg></span>
+          <span class="demo-tag">过场演出</span>
+          <h3>长明塔</h3><span class="latin">Pharos</span>
+          <p>一段只放给你看的过场电影——按一下,推进一幕。</p>
+          <span class="go">进入 <span class="arw">→</span></span>
+        </a>
+
+        <a class="demo" href="tabletop-demo.html" style="--i:2">
+          <span class="sigil" aria-hidden="true"><span class="sigil-halo"></span>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 7v10M7.5 9.5l9 5M16.5 9.5l-9 5" opacity=".7"/></svg></span>
+          <span class="demo-tag">跑团检定</span>
+          <h3>掷骰台</h3><span class="latin">Alea</span>
+          <p>角色卡、技能检定、命运时钟——骰子只负责讲真话。</p>
+          <span class="go">进入 <span class="arw">→</span></span>
+        </a>
+
+        <a class="demo" href="horror-demo.html" style="--i:3">
+          <span class="sigil" aria-hidden="true"><span class="sigil-halo"></span>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/></svg></span>
+          <span class="demo-tag">恐怖短片</span>
+          <h3>残响</h3><span class="latin">Silens</span>
+          <p>灯照不到的那半间屋子,一直有声音。</p>
+          <span class="go">进入 <span class="arw">→</span></span>
+        </a>
+
+        <a class="demo" href="maze3d.html" style="--i:4">
+          <span class="sigil" aria-hidden="true"><span class="sigil-halo"></span>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 3h18v18H3z"/><path d="M7 3v10h6M11 21V11h6M7 17h4M15 3v4" opacity=".85"/></svg></span>
+          <span class="demo-tag">伪 3D 迷宫</span>
+          <h3>回廊</h3><span class="latin">Labyrinthvs</span>
+          <p>第一人称走进迷宫——墙在换位,机关与谜题一层比一层深。</p>
+          <span class="go">进入 <span class="arw">→</span></span>
+        </a>
+
+        <a class="demo" href="arcade-demo.html" style="--i:5">
+          <span class="sigil" aria-hidden="true"><span class="sigil-halo"></span>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M20 6L6 11l-2 7 7-2 9-8z"/><circle cx="17" cy="7" r="1.3" fill="currentColor" stroke="none"/><path d="M6 11l3 3" /></svg></span>
+          <span class="demo-tag">街机小游戏</span>
+          <h3>流火</h3><span class="latin">Scintilla</span>
+          <p>一台塞进故事里的小街机——实时操作,即点即玩。</p>
+          <span class="go">进入 <span class="arw">→</span></span>
+        </a>
+
+        <a class="demo seed" href="minimal-demo.html" style="--i:6">
+          <span class="sigil" aria-hidden="true"><span class="sigil-halo"></span>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4" opacity=".8"/></svg></span>
+          <span class="demo-tag">最小模板</span>
+          <h3>初火</h3><span class="latin">Origo</span>
+          <p>最小可玩范本——所有世界共有的第一行,从这里起草你自己的。</p>
+          <span class="go">从这里起笔 <span class="arw">→</span></span>
+        </a>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule" aria-hidden="true">
+  <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 0l1.6 6.4L16 8l-6.4 1.6L8 16l-1.6-6.4L0 8l6.4-1.6z" fill="currentColor"/></svg>
+</div>
+
+<!-- ============================ 它怎么运作 ============================ -->
+<section class="how" id="how">
+  <div class="wrap">
+    <div class="how-head reveal">
+      <span class="eyebrow center">RATIO · 制图三则</span>
+      <h2 class="section-h">几行数据,如何变成一个世界</h2>
+      <p class="lede">三步,如制一册星图:落笔,装订,点亮。</p>
+    </div>
+    <div class="steps reveal">
+      <div class="step">
+        <div class="num">I</div>
+        <h3>落笔<span class="gloss">写下数据</span></h3>
+        <p>用几行数据写下场景、选择与事件——交给 AI 代笔,或亲手来。</p>
+        <!-- 卡图节选:kind/look/links/label/to 均为引擎真实契约字段,不造假 -->
+        <div class="cartouche"><pre><span class="c">// world.js · 真实字段</span>
+<span class="k">shore</span>: {
+  <span class="k">kind</span>: <span class="s">'scene'</span>,
+  <span class="k">look</span>: <span class="s">'潮水退了,灯塔在雾里。'</span>,
+  <span class="k">links</span>: [
+    { <span class="k">label</span>: <span class="s">'拾起贝壳'</span>, <span class="k">to</span>: <span class="s">'beach'</span> },
+    { <span class="k">label</span>: <span class="s">'走向灯塔'</span>, <span class="k">to</span>: <span class="s">'pharos'</span> }
+  ]
+}</pre></div>
+        <p class="cart-cap">world.js 节选 · 引擎真实字段</p>
+      </div>
+      <div class="step">
+        <div class="num">II</div>
+        <h3>装订<span class="gloss">引擎编译</span></h3>
+        <p>引擎把世界和运行时编进同一个文件,一路自动审计——死链、锁死、写错的字段,当场报红。</p>
+        <!-- 审计票据:与羊皮卡图齐平的暗色器械牌;坏字段一行亮红,示 fail-loud「当场报红」 -->
+        <div class="step-anchor ledger">
+          <div class="lg-row"><span class="lg-item">断链</span><span class="lg-mark" aria-hidden="true">✓</span></div>
+          <div class="lg-row"><span class="lg-item">锁死</span><span class="lg-mark" aria-hidden="true">✓</span></div>
+          <div class="lg-row bad"><span class="lg-item">坏字段</span><span class="lg-mark" aria-hidden="true">✕</span></div>
+          <p class="anchor-cap">发布前 · 当场亮红</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="num">III</div>
+        <h3>点亮<span class="gloss">双击即玩</span></h3>
+        <p>得到一个零依赖的 HTML:双击就玩,离线能跑,发给谁都不用装东西。</p>
+        <!-- 单文件封印:单 HTML 文件线描(右下折角)+ 刚点亮的星芒 + 印章徽记「1 file · 0 deps」 -->
+        <div class="step-anchor seal">
+          <svg class="seal-fig" viewBox="0 0 120 108" fill="none" aria-hidden="true">
+            <!-- 单 HTML 文件:鎏金线描,右下角折角 -->
+            <path d="M33 10H79V62L65 76H33Z" stroke="#c8a24a" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M79 62H65V76" stroke="#c8a24a" stroke-width="1.4" stroke-linejoin="round" opacity=".85"/>
+            <!-- </> 代码记号 + 两行代码,示意这是一份 HTML -->
+            <g stroke="#c8a24a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity=".72">
+              <path d="M49 24l-4 3.5 4 3.5"/><path d="M63 24l4 3.5-4 3.5"/><path d="M59 22l-4 11.5"/>
+            </g>
+            <g stroke="#c8a24a" stroke-width="1.4" stroke-linecap="round" opacity=".42">
+              <path d="M41 40h30"/><path d="M41 47h20"/>
+            </g>
+            <!-- 刚点亮的星芒(呼应「点亮」) -->
+            <circle cx="85" cy="13" r="7.5" fill="rgba(242,233,207,.16)"/>
+            <path d="M85 5l1.5 5.5 5.5 1.5-5.5 1.5-1.5 5.5-1.5-5.5-5.5-1.5 5.5-1.5z" fill="#f2e9cf"/>
+            <!-- 印章徽记:双环橡皮章,刻 1 file · 0 deps -->
+            <g transform="rotate(-5 62 84)">
+              <ellipse cx="62" cy="84" rx="45" ry="15" fill="rgba(9,14,26,.66)" stroke="#c8a24a" stroke-width="1.5"/>
+              <ellipse cx="62" cy="84" rx="40.5" ry="11" fill="none" stroke="#c8a24a" stroke-width=".8" opacity=".5"/>
+              <text x="62" y="87.6" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="9.5" letter-spacing=".2" fill="#e6cd86">1 file · 0 deps</text>
+            </g>
+          </svg>
+          <p class="anchor-cap">双击即玩 · 离线可跑</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule" aria-hidden="true">
+  <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 0l1.6 6.4L16 8l-6.4 1.6L8 16l-1.6-6.4L0 8l6.4-1.6z" fill="currentColor"/></svg>
+</div>
+
+<!-- ============================ 引擎能力 ============================ -->
+<section class="powers" id="powers">
+  <div class="wrap">
+    <div class="powers-head reveal">
+      <span class="eyebrow center">INSTRVMENTA · 引擎能力</span>
+      <h2 class="section-h">一座引擎,自带整套工坊</h2>
+      <p class="lede">画笔、乐师、把关的人,都替你请好了——你只管讲你的故事。</p>
+    </div>
+    <!-- sigil 对应:书页=玩法 · 画笔=视觉 · 音符=音乐 · 插头=插件(取"即插即用"的字面) · 天平=审计 · 调色盘=皮肤 · 积木=可拓展 · 滑杆=高度可定制 -->
+    <div class="powers-grid reveal">
+      <div class="power">
+        <span class="power-sigil" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 5.2C10 3.7 7.6 3.2 4 3.2v14.6c3.6 0 6 .5 8 2 2-1.5 4.4-2 8-2V3.2c-3.6 0-6 .5-8 2z"/><path d="M12 5.2v14.6" opacity=".7"/></svg></span>
+        <h3>玩法模块</h3>
+        <p>文字冒险、跑团检定、过场演出、迷宫与街机——按需取用,可混进同一个世界。</p>
+      </div>
+      <div class="power">
+        <span class="power-sigil" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M20.2 3.8l-8.6 8.6"/><path d="M11.5 12.4c-2.1-.4-4.1 1-4.4 3-.2 1.3-.9 2.2-2.3 2.8 1.7 1.3 4.9 1.4 6.4-.3 1.1-1.3 1.3-3.5.3-5.5z"/></svg></span>
+        <h3>程序化视觉</h3>
+        <p>场景、天气与光,由数据当场画出——不需要一张美术素材。</p>
+      </div>
+      <div class="power">
+        <span class="power-sigil" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 17.6V6.2l9-1.8v11.4"/><circle cx="6.8" cy="17.6" r="2.2" fill="currentColor" stroke="none"/><circle cx="15.8" cy="15.8" r="2.2" fill="currentColor" stroke="none"/></svg></span>
+        <h3>生成音乐与音效</h3>
+        <p>环境声、配乐、音效全部现场合成,乐师就住在引擎里。</p>
+      </div>
+      <div class="power">
+        <span class="power-sigil" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 3.5V8M15 3.5V8"/><path d="M7 8h10v3.2a5 5 0 0 1-10 0z"/><path d="M12 16.2v4.3"/></svg></span>
+        <h3>能力插件</h3>
+        <p>存档、小地图、成就、物品栏——一行装配,即插即用。</p>
+      </div>
+      <div class="power">
+        <span class="power-sigil" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 4.5v15M8.8 19.5h6.4M4.8 7h14.4"/><path d="M4.8 7l-2.3 5.6M4.8 7l2.3 5.6M2.5 12.6a2.3 2.3 0 0 0 4.6 0z"/><path d="M19.2 7l-2.3 5.6M19.2 7l2.3 5.6M16.9 12.6a2.3 2.3 0 0 0 4.6 0z"/></svg></span>
+        <h3>三道审计闸</h3>
+        <p>死链、锁死、坏字段,发布前当场报红——不让带伤的世界出门。</p>
+      </div>
+      <div class="power">
+        <span class="power-sigil" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3.2a8.8 8.8 0 1 0 .3 17.6c1.6 0 2.4-1 2.4-2 0-.6-.3-1-.7-1.4-.4-.5-.7-.9-.7-1.5 0-1.1.9-2 2.2-2h1.8a4.2 4.2 0 0 0 3.5-4.1c-.3-3.8-4.1-6.6-8.8-6.6z"/><circle cx="7.6" cy="10" r="1.15" fill="currentColor" stroke="none"/><circle cx="10.8" cy="6.9" r="1.15" fill="currentColor" stroke="none"/><circle cx="15.2" cy="7.4" r="1.15" fill="currentColor" stroke="none"/></svg></span>
+        <h3>八套皮肤</h3>
+        <p>八种起点审美,一个开关切换,给你一个不难看的起点。</p>
+      </div>
+      <div class="power">
+        <span class="power-sigil" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="13.5" width="7.5" height="7" rx="1"/><rect x="13.5" y="13.5" width="7.5" height="7" rx="1"/><rect x="8.25" y="4" width="7.5" height="7" rx="1"/><path d="M12 6.4v2.2M10.9 7.5h2.2" stroke-width="1.2" opacity=".85"/></svg></span>
+        <h3>可拓展</h3>
+        <p>自定义 kind 与模块,在通用核心上叠你自己的玩法;示例里那座伪 3D 迷宫,本身就是这么搭出来的。</p>
+      </div>
+      <div class="power">
+        <span class="power-sigil" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2.1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2.1" fill="currentColor" stroke="none"/><circle cx="7" cy="17" r="2.1" fill="currentColor" stroke="none"/></svg></span>
+        <h3>高度可定制</h3>
+        <p>视觉、文案、音频、皮肤都归你手;引擎只给结构与规则,不锁死审美。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule" aria-hidden="true">
+  <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 0l1.6 6.4L16 8l-6.4 1.6L8 16l-1.6-6.4L0 8l6.4-1.6z" fill="currentColor"/></svg>
+</div>
+
+<!-- ============================ 邀请(纯渴望,无规格) ============================ -->
+<section class="invite">
+  <div class="wrap">
+    <div class="invite-inner reveal">
+      <p class="invite-lead">你心里也有一个世界,只是还没人玩到。</p>
+      <p class="invite-mid">从前,把它做出来,要一支团队、一整年、一笔不小的钱。</p>
+      <p class="invite-punch">现在,只要你,和几句话——<br><span class="invite-hot">今晚写完,今晚就能发给朋友玩。</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 开始使用 ============================ -->
+<section class="start" id="start">
+  <div class="wrap">
+    <div class="start-head reveal">
+      <span class="eyebrow center">INITIVM · 开始使用</span>
+      <h2 class="section-h">把引擎交给你的 AI</h2>
+      <p class="lede">为 AI 协作而设计:Claude Code 与 Codex 开箱即用,作者手册随包附带。</p>
+    </div>
+    <!-- 去盒列(同航路语汇);不编罗马数字——第三列是"或者"不是次序 -->
+    <div class="start-grid reveal">
+      <div class="start-item">
+        <h3><span class="node" aria-hidden="true">✦</span>取下引擎</h3>
+        <p>从 Releases 下载,解开就是全部——没有安装器,也没有依赖。</p>
+      </div>
+      <div class="start-item">
+        <h3><span class="node" aria-hidden="true">✦</span>说出你要的世界</h3>
+        <p>打开 Claude Code 或 Codex,一句话即可开工;随包的手册与审计闸会接住其余的一切。</p>
+        <blockquote class="incant">「帮我用 Amatlas 做一个关于雨夜灯塔的游戏。」</blockquote>
+      </div>
+      <div class="start-item">
+        <h3><span class="node" aria-hidden="true">✦</span>或者亲手来</h3>
+        <p>三个源文件,一条构建命令;不带 AI,也是一台顺手的引擎。</p>
+      </div>
+    </div>
+    <div class="start-foot reveal">
+      <p class="lede-sub">Claude Code 读 CLAUDE.md,Codex 读 AGENTS.md——两份互补指南,加同一套技能手册,都随包附带。</p>
+      <p class="start-punch">别再只是想着那个世界了——它离你,只有一句话的距离。</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/TNTcraftHIM/amatlas/releases/latest">下载引擎</a>
+        <a class="btn btn-ghost" href="#worlds">回到七个世界 ↑</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 页脚 ============================ -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-rule" aria-hidden="true">
+      <svg width="92" height="16" viewBox="0 0 92 16" fill="none" stroke="currentColor" stroke-width="1">
+        <path d="M0 12H12V4H4V8H8 M16 12H28V4H20V8H24 M32 12H44V4H36V8H40 M48 12H60V4H52V8H56 M64 12H76V4H68V8H72 M80 12H92V4H84V8H88"/>
+      </svg>
+    </div>
+    <div class="foot-inner reveal">
+      <span class="foot-wordmark">Amatlas</span>
+      <p class="foot-tag">一个文件,一个世界——落笔之后,引擎替你点亮。</p>
+      <nav class="foot-links" aria-label="下载与源码">
+        <a class="dl" href="https://github.com/TNTcraftHIM/amatlas/releases/latest">▸ 下载 · Releases</a>
+        <a href="https://github.com/TNTcraftHIM/amatlas">源码 · GitHub</a>
+        <a href="#worlds">试玩 · 七个世界</a>
+        <a href="#powers">引擎能力</a>
+        <a href="#start">开始使用</a>
+      </nav>
+    </div>
+    <p class="colophon">Amatlas 0.1.2 测试版 · amatlas.ai · MIT 开源 · 星盘为记</p>
+  </div>
+</footer>
+
+<!-- ============================ 疆域之窗(demo 遮罩面板) ============================ -->
+<!-- 无 JS 恒隐(visibility:hidden),demo 卡走原生链接;有 JS:点卡就地打开,iframe 届时才装 src -->
+<div class="demoport" id="demoport">
+  <div class="demoport-scrim" aria-hidden="true"></div>
+  <div class="demoport-panel" role="dialog" aria-modal="true" aria-labelledby="demoport-title">
+    <div class="demoport-bar">
+      <span class="demoport-tag" id="demoport-title"><span class="dot"></span><span class="demoport-tag-text"></span></span>
+      <div class="demoport-actions">
+        <a class="demoport-ext" href="#" target="_blank" rel="noopener">新标签打开 ↗</a>
+        <button class="demoport-close" type="button" aria-label="合上这处疆域">✕</button>
+      </div>
+    </div>
+    <iframe class="demoport-frame" title="" loading="lazy" allow="autoplay"></iframe>
+  </div>
+</div>
+
+<script>
+/* html.js 门:JS 关闭时核心内容仍在(星盘 SVG、文案、demo 链接、无 JS 直接跳 origin.html) */
+document.documentElement.classList.add('js');
+(function(){
+  "use strict";
+  var stage=document.getElementById('astrolabe');
+  var enter=stage&&stage.querySelector('.world-enter');
+
+  /* --- 统一「疆域之窗」遮罩:hero 世界之窗 与 7 张 demo 卡共用一套(body 级 z60,
+         暗场在面板背后;关闭即导航空白页卸载 iframe → 真停 BGM/rAF;点面板内不误关) --- */
+  var port=document.getElementById('demoport');
+  var portFrame=port&&port.querySelector('.demoport-frame');
+  var portTag=port&&port.querySelector('.demoport-tag-text');
+  var portExt=port&&port.querySelector('.demoport-ext');
+  var portClose=port&&port.querySelector('.demoport-close');
+  var portScrim=port&&port.querySelector('.demoport-scrim');
+  var lastReturn=null;    // 记住来路元素(世界之窗或 demo 卡),合上后把焦点还回去
+  var savedOverflow=null; // P2-6:首次打开时存 body.overflow 原值,合上精确恢复(重复 open 不覆盖)
+  var inerted=[];         // P1-2:被设为 inert 的背景直接子节点(合上时精确移除)
+  var escDoc=null,escFn=null; // P1-1:iframe 内 Esc 监听(同源才装,合上即卸)
+
+  // P1-2:除 #demoport 外的 body 直接子节点整棵设/撤 inert(背景不可聚焦/不可交互 → 焦点陷阱外层)
+  function setBackgroundInert(on){
+    if(on){
+      inerted=[];
+      Array.prototype.forEach.call(document.body.children,function(el){
+        if(el===port||el.hasAttribute('inert')) return; // 跳过遮罩本身与已 inert 的
+        el.setAttribute('inert','');inerted.push(el);
+      });
+    }else{
+      inerted.forEach(function(el){el.removeAttribute('inert');});
+      inerted=[];
+    }
+  }
+  // P1-1:卸掉 iframe 文档里的 Esc 监听
+  function detachFrameEsc(){
+    if(escDoc&&escFn){try{escDoc.removeEventListener('keydown',escFn,true);}catch(_){}}
+    escDoc=null;escFn=null;
+  }
+  function frameFocusables(doc){
+    var els=doc.querySelectorAll('a[href],button,input,select,textarea,[tabindex]');
+    return Array.prototype.filter.call(els,function(el){
+      var style=null;
+      try{style=doc.defaultView&&doc.defaultView.getComputedStyle(el);}catch(_){}
+      return !el.disabled&&el.tabIndex>=0&&el.getClientRects().length>0&&
+        (!style||(style.visibility!=='hidden'&&style.display!=='none'));
+    });
+  }
+
+  function openPort(href,title,tagText,returnEl){
+    if(!port||!portFrame||!href) return;
+    if(portTag) portTag.textContent=tagText||'';
+    if(portExt) portExt.setAttribute('href',href);
+    portFrame.setAttribute('title',title||'');
+    portFrame.setAttribute('src',href);   // 懒加载:打开才装弹
+    port.classList.add('open');
+    if(savedOverflow===null) savedOverflow=document.body.style.overflow; // 只在首开存原值
+    document.body.style.overflow='hidden'; // 锁背景滚动
+    setBackgroundInert(true);              // 背景整棵 inert(不可 Tab 进入)
+    lastReturn=returnEl||null;
+    if(portClose) portClose.focus();
+  }
+  function closePort(){
+    if(!port) return;
+    detachFrameEsc();
+    port.classList.remove('open');
+    if(portFrame){
+      // 先导航到空白页停掉音频/rAF,再移除 src(单纯 removeAttribute 不触发卸载 → BGM 会继续)
+      portFrame.setAttribute('src','about:blank');
+      portFrame.removeAttribute('src');
+    }
+    document.body.style.overflow=(savedOverflow===null?'':savedOverflow); // 精确还原原值
+    savedOverflow=null;
+    setBackgroundInert(false);             // 先撤 inert 再还焦点(inert 元素不可聚焦)
+    if(lastReturn) lastReturn.focus();
+  }
+
+  // P1-1:iframe 载入后,对其(同源)文档注册 Esc → closePort;跨源/未就绪/合上态跳过
+  if(portFrame) portFrame.addEventListener('load',function(){
+    detachFrameEsc();
+    if(!port.classList.contains('open')) return; // 合上时的 about:blank 卸载,不装
+    var doc=null;
+    try{doc=portFrame.contentDocument;}catch(_){doc=null;} // 跨源读不到 → 跳过
+    if(!doc) return;
+    escFn=function(e){
+      if(e.key==='Escape'){
+        // 等子游戏自己的 Escape 处理器先运行；若它 preventDefault（如 maze3d 谜题层），
+        // 第一次 Escape 只关子层。普通页面未消费时才合上整个 demoport。
+        setTimeout(function(){if(!e.defaultPrevented&&port.classList.contains('open')) closePort();},0);
+        return;
+      }
+      if(e.key!=='Tab') return;
+      var list=frameFocusables(doc),a=doc.activeElement;
+      // iframe 是父弹窗的最后一个 Tab 站点；首尾边界回到标题栏。Chromium 从父栏
+      // Shift+Tab 进入 iframe 时先聚焦 body，此时应送到子页末项，而不是跳过整页。
+      if(e.shiftKey&&(a===doc.body||a===doc.documentElement)){
+        e.preventDefault();if(list.length) list[list.length-1].focus();else if(portClose) portClose.focus();
+      }else if(e.shiftKey&&(!list.length||a===list[0])){
+        e.preventDefault();if(portClose) portClose.focus();
+      }else if(!e.shiftKey&&(!list.length||a===list[list.length-1])){
+        e.preventDefault();if(portExt) portExt.focus();
+      }
+    };
+    escDoc=doc;
+    try{doc.addEventListener('keydown',escFn,true);}catch(_){detachFrameEsc();} // 捕获相只观察;关闭延后,让子游戏先消费 Escape
+  });
+
+  // hero「点亮这个世界」→ 载入 origin.html(与 demo 同一套遮罩;修饰键交还浏览器)
+  if(enter) enter.addEventListener('click',function(e){
+    if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey) return;
+    e.preventDefault();
+    openPort(enter.getAttribute('href'),enter.getAttribute('data-port-title'),enter.getAttribute('data-port-tag'),enter);
+  });
+  // 7 张 demo 卡 → 各自 href(无 JS 时保持原生跳转)
+  document.querySelectorAll('.demo').forEach(function(card){
+    card.addEventListener('click',function(e){
+      if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey) return;
+      e.preventDefault();
+      var name=card.querySelector('h3')?card.querySelector('h3').textContent:'';
+      var kind=card.querySelector('.demo-tag')?card.querySelector('.demo-tag').textContent:'';
+      openPort(card.getAttribute('href'),name,name+' · '+kind,card);
+    });
+  });
+  if(portClose) portClose.addEventListener('click',closePort);
+  if(portScrim) portScrim.addEventListener('click',closePort);
+
+  // P1-2:面板内可聚焦项(新标签打开 / 关闭钮 / iframe),用于首尾 Tab 循环
+  function portFocusables(){
+    if(!port) return [];
+    var els=port.querySelectorAll('.demoport-ext,.demoport-close,.demoport-frame');
+    return Array.prototype.filter.call(els,function(el){
+      return !el.disabled && el.getClientRects().length>0;
+    });
+  }
+  // 父文档层:Esc 关闭 + 面板首尾 Tab 循环(背景已 inert,焦点被锁在面板内)
+  document.addEventListener('keydown',function(e){
+    if(!port||!port.classList.contains('open')) return;
+    if(e.key==='Escape'){ closePort(); return; }
+    if(e.key==='Tab'){
+      var list=portFocusables();
+      if(!list.length) return;
+      var first=list[0],last=list[list.length-1],a=document.activeElement;
+      if(e.shiftKey){
+        if(a===first||!port.contains(a)){
+          e.preventDefault();
+          var doc=null,inner=[];
+          try{doc=portFrame&&portFrame.contentDocument;inner=doc?frameFocusables(doc):[];}catch(_){doc=null;}
+          if(inner.length) inner[inner.length-1].focus();else last.focus();
+        }
+      }else{
+        if(a===last||!port.contains(a)){ e.preventDefault(); first.focus(); }
+      }
+    }
+  });
+
+  /* --- 星座连线:按卡片 sigil 的真实坐标画,连的是真 demo(结构=真信息) --- */
+  var map=document.querySelector('.worlds-map');
+  var svg=document.querySelector('.constellation');
+  var poly=svg&&svg.querySelector('polyline');
+  function drawConstellation(){
+    if(!map||!svg||!poly) return;
+    if(getComputedStyle(svg).display==='none'){return;}
+    var mr=map.getBoundingClientRect();
+    svg.setAttribute('viewBox','0 0 '+mr.width+' '+mr.height);
+    var sigs=map.querySelectorAll('.demo .sigil');
+    var pts=[],dots='';
+    // 收 pts
+    var arr=[];
+    sigs.forEach(function(s){
+      var r=s.getBoundingClientRect();
+      arr.push([r.left-mr.left+r.width/2, r.top-mr.top+r.height/2]);
+    });
+    arr.forEach(function(p){ pts.push(p[0].toFixed(1)+','+p[1].toFixed(1)); });
+    poly.setAttribute('points',pts.join(' '));
+    // 星点
+    var old=svg.querySelectorAll('circle'); old.forEach(function(c){c.remove();});
+    arr.forEach(function(p){
+      var c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx',p[0].toFixed(1));c.setAttribute('cy',p[1].toFixed(1));c.setAttribute('r','2.6');
+      svg.appendChild(c);
+    });
+  }
+  var t;
+  function schedule(){clearTimeout(t);t=setTimeout(drawConstellation,120);}
+  window.addEventListener('resize',schedule);
+  window.addEventListener('load',drawConstellation);
+  drawConstellation();
+
+  /* --- 滚动渐显(reduced-motion 时 CSS 已让其恒显) --- */
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target);} });
+    },{threshold:.12,rootMargin:'0px 0px -8% 0px'});
+    document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+  }else{
+    document.querySelectorAll('.reveal').forEach(function(el){el.classList.add('in');});
+  }
+})();
+</script>
+</body>
+</html>
