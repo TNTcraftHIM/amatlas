@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN" data-ui="amatlas-dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Amatlas UI Skin Gallery</title>
+  <link rel="stylesheet" href="../../ui/amatlas-skins.css">
+  <style>
+    /* Gallery 页面壳层:共享 UI skin 在 ../../ui/amatlas-skins.css;这里仅放选材页说明栏/切换控件。 */
+    header { padding: 22px clamp(16px,4vw,42px); border-bottom: 1px solid var(--amatlas-line); background: color-mix(in srgb, var(--amatlas-bg-soft) 88%, transparent); box-shadow: 0 14px 44px var(--amatlas-shadow); }
+    h1 { margin: 0 0 8px; font: 700 clamp(24px,3.5vw,40px)/1.18 var(--amatlas-ui-font); letter-spacing: .03em; color: var(--amatlas-accent); }
+    header p { margin: 0; max-width: 1080px; color: var(--amatlas-muted); overflow-wrap: anywhere; }
+    .skin-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .skin-choice { color: var(--amatlas-ink); border: 1px solid var(--amatlas-line); background: color-mix(in srgb, var(--amatlas-panel) 86%, transparent); border-radius: 999px; padding: 7px 11px; font: inherit; cursor: pointer; box-shadow: 0 8px 24px var(--amatlas-shadow); }
+    .skin-choice:hover { border-color: var(--amatlas-accent); }
+    .skin-choice:focus-visible { outline: 3px solid color-mix(in srgb, var(--amatlas-accent-2) 86%, white); outline-offset: 3px; }
+    .skin-choice { display: grid; gap: 2px; text-align: left; max-width: 260px; border-radius: var(--amatlas-radius); }
+    .skin-choice strong { color: var(--amatlas-accent); }
+    .skin-choice span { color: var(--amatlas-muted); font-size: 12px; }
+    .skin-choice[aria-pressed="true"] { border-color: var(--amatlas-accent); background: color-mix(in srgb, var(--amatlas-accent) 15%, var(--amatlas-panel)); }
+    #skin-current { margin-top: 10px; color: var(--amatlas-muted); font-size: 13px; }
+
+    .shell { display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 18px; padding: 22px clamp(16px,4vw,42px) 54px; align-items: start; }
+    .shell > #app { margin: 0; }
+    .notes { border: 1px solid var(--amatlas-line); background: color-mix(in srgb, var(--amatlas-panel) 86%, transparent); border-radius: calc(var(--amatlas-radius) + 4px); padding: 16px; box-shadow: 0 14px 36px var(--amatlas-shadow); }
+    .notes h2 { margin: 0 0 8px; font: 700 18px/1.2 var(--amatlas-ui-font); color: var(--amatlas-accent); }
+    .notes p { margin: 8px 0; color: var(--amatlas-muted); }
+    .notes code { color: var(--amatlas-accent-2); word-break: break-word; }
+
+    html[data-ui="amatlas-dark"] .notes { border-left: 4px solid var(--amatlas-accent); }
+
+    html[data-ui="parchment"] header { border-radius: 18px 18px 4px 4px; background: linear-gradient(180deg, rgba(255,248,223,.96), rgba(239,226,198,.88)); box-shadow: inset 0 0 0 1px var(--amatlas-line), 0 18px 46px rgba(88,55,24,.20); }
+    html[data-ui="parchment"] .notes { background: #f2dca6; border: 1px solid rgba(89,55,25,.30); border-radius: 3px 18px 18px 3px; box-shadow: 6px 8px 0 rgba(127,63,33,.12); }
+
+    html[data-ui="terminal"] header { background: linear-gradient(180deg, rgba(2,7,5,.98), rgba(2,7,5,.88)); box-shadow: inset 0 -1px 0 rgba(109,255,154,.25), 0 0 42px rgba(68,217,255,.08); }
+    html[data-ui="terminal"] h1::before { content: "ATLAS://"; color: var(--amatlas-accent-2); }
+    html[data-ui="terminal"] .skin-choice { border-radius: 0; box-shadow: none; }
+    html[data-ui="terminal"] .notes { border-radius: 0; background: rgba(2,7,5,.78); box-shadow: inset 0 0 0 1px rgba(109,255,154,.14), 0 0 24px rgba(109,255,154,.08); }
+    html[data-ui="terminal"] .notes h2::before { content: "// "; color: var(--amatlas-accent-2); }
+
+    html[data-ui="casefile"] header { background: #fbfaf5; box-shadow: inset 0 0 0 2px rgba(37,35,31,.22), 10px 10px 0 rgba(47,89,107,.10); }
+    html[data-ui="casefile"] h1 { color: #25231f; }
+    html[data-ui="casefile"] h1::after { content: "  VERIFIED"; color: var(--amatlas-accent); font-size: .38em; vertical-align: middle; }
+    html[data-ui="casefile"] .notes { background: #fff4b8; border-color: transparent; border-radius: 2px; box-shadow: 0 10px 22px rgba(44,34,24,.18); }
+    html[data-ui="casefile"] .notes h2 { color: #25231f; }
+
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      header { padding-top: calc(18px + env(safe-area-inset-top)); }
+      .skin-choice { width: 100%; max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Amatlas UI Skin Gallery</h1>
+    <p>这是普通文字冒险/跑团页面 chrome 的换皮选材页:同一套 `#mapname/#place/#scene/#look/#choices/#status` 和插件工具栏,只通过 HTML/CSS 模板切换外观。它不是 demo,不是新模块,也不新增 world/View 字段。八套 skin 覆盖干净基线、纸页、终端、档案、脏 zine、神秘学边注、霓虹夜城和野外笔记。</p>
+    <nav id="skin-controls" class="skin-controls" aria-label="选择 UI skin"></nav>
+    <p id="skin-current" aria-live="polite"></p>
+  </header>
+
+  <div class="shell">
+    <aside class="notes">
+      <h2>边界</h2>
+      <p>Gallery 用真实 Amatlas.boot 跑一个小 world,只是为了让按钮、锁定提示、状态栏、小地图、存档和成就都出现在同一页里。</p>
+      <p>切 skin 只改 <code>document.documentElement.dataset.ui</code>;运行时、模块、核心契约都不参与。</p>
+      <p>正式游戏可链接 <code>engine/ui/amatlas-skins.css</code> 或让 build 内联这份共享 CSS;不要给 world 增加 theme/skin 字段。</p>
+    </aside>
+
+    <main id="app">
+      <div id="plugin-bar"></div>
+      <div id="mapname"></div>
+      <h2 id="place"></h2>
+      <div id="scene"></div>
+      <div id="look"></div>
+      <div id="choices"></div>
+      <div id="status"></div>
+    </main>
+  </div>
+
+  <div id="plugin-minimap"></div>
+  <div id="plugin-overlay"></div>
+
+  <script src="../../core/runtime/engine-core.js"></script>
+  <script src="../../modules/text-adventure/runtime/renderer.js"></script>
+  <script src="../../presenters/present-dom.js"></script>
+  <script src="../../presenters/present-svg.js"></script>
+  <script src="../../plugins/save.js"></script>
+  <script src="../../plugins/minimap.js"></script>
+  <script src="../../plugins/achievement.js"></script>
+  <script src="../../plugins/reset.js"></script>
+  <script src="../../preset/boot.js"></script>
+  <script src="ui-skins-gallery-world.js"></script>
+  <script src="ui-skins-gallery.js"></script>
+</body>
+</html>
