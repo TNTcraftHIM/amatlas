@@ -1,0 +1,68 @@
+/* Amatlas 触控键帽 · 共享皮肤感知样式
+   ────────────────────────────────────────────────────────────────────────
+   一套系统:所有模块的虚拟方向键/动作键长相在此统一,并【消费】--amatlas-* token
+   → 随 <html data-ui> 皮肤自动适配(amatlas-dark/parchment/terminal/…),不写死颜色。
+
+   边界(和 amatlas-skins.css 同一纪律):
+   - 本文件只放「键帽长相」:面 / 描边 / 字色 / 按下 / 焦点 / 降噪。
+   - 【不放】布局几何——十字排布、整宽条、尺寸、事件逻辑(按住走 vs 点按转向)都是
+     模块本地的事(几何在所有皮肤下恒定),留在各模块 runtime。
+   - 为什么是「共享 CSS 类」而非「共享 JS 组件」:模块 UI 靠消费 token 统一是引擎既定模式;
+     两个消费者(maze3d 走位 / arcade 转向)行为差异大,共享面其实只有长相——抽 JS 工厂=过早抽象。
+
+   用法:模块给按钮加 class="amatlas-touchpad-key"(次级动作如「重开」再加 --pill);
+   布局/尺寸/glyph/aria/事件由模块本地负责。按住态由模块在 pointerdown 时挂 .is-pressed。
+   ──────────────────────────────────────────────────────────────────────── */
+
+.amatlas-touchpad-key {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;                 /* 触摸命中区下限;模块可用更大尺寸覆盖 */
+  min-height: 44px;
+  border-radius: 11px;
+  border: 1px solid var(--amatlas-line, #263449);
+  background: linear-gradient(180deg, var(--amatlas-panel-2, #172334), var(--amatlas-panel, #121a26));
+  color: var(--amatlas-ink, #e8edf4);
+  font: 600 19px/1 var(--amatlas-ui-font, system-ui, sans-serif);
+  cursor: pointer;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 2px 5px var(--amatlas-shadow, rgba(0, 0, 0, .42));
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .5);
+  transition: transform .06s ease, box-shadow .12s ease, background .12s ease, color .12s ease;
+}
+
+/* 按下 = 键帽压下 + 皮肤强调色点亮。
+   :active 覆盖鼠标/触摸即时按压;.is-pressed 由模块在「按住持续走」时挂,表达持续态。
+   类驱动(非内联)→ 无需 !important 压内联基础色(旧实现的坑,见 lessons#171)。 */
+.amatlas-touchpad-key:active,
+.amatlas-touchpad-key.is-pressed {
+  transform: translateY(1px);
+  box-shadow: 0 0 0 2px var(--amatlas-accent, #b89b6a), inset 0 0 12px rgba(0, 0, 0, .28);
+  color: var(--amatlas-accent, #b89b6a);
+}
+
+/* 键盘可见焦点(a11y 底线) */
+.amatlas-touchpad-key:focus-visible {
+  outline: 3px solid var(--amatlas-accent, #b89b6a);
+  outline-offset: 2px;
+}
+
+/* 次级动作键(如「重开」):更弱更小,不与方向键抢视觉 */
+.amatlas-touchpad-key--pill {
+  color: var(--amatlas-muted, #8fa0b5);
+  font-size: 13px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .amatlas-touchpad-key {
+    transition: none;
+  }
+  .amatlas-touchpad-key:active,
+  .amatlas-touchpad-key.is-pressed {
+    transform: none;
+  }
+}
