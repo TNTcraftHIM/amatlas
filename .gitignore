@@ -1,0 +1,39 @@
+# ─────────────────────────────────────────────────────────
+# 这是一个通用工具包。用户用它来做自己的游戏。
+# 用户游戏产生的记忆/状态文件不应进入工具包的 git 历史。
+# (可移植性靠"拷贝整个文件夹"实现 —— tar/zip 会包含这些文件,
+#  只是 git 不追踪它们,以免污染工具包仓库。)
+# ─────────────────────────────────────────────────────────
+
+# ── 用户游戏的记忆/状态(不追踪,但仍存在于项目文件夹内、跟着文件夹走) ──
+PROGRESS.md
+canon.md
+glossary.md
+
+# ── 用户游戏的产物 ──
+game.html
+game_*.html
+final_game.html
+*.save.json
+
+# ── Claude Code 内部 / 机器特定 ──
+.claude/settings.local.json
+.claude/projects/
+.claude/python-path
+.claude/last-precompact.txt
+
+# ── Python / 系统 / 构建 ──
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+Thumbs.db
+*.log
+/build/
+/node_modules/
+# 构建产物(build.mjs 生成的单 HTML,任意游戏目录的 dist/);源码 world/game/index 仍追踪
+dist/
+
+# 调试模式产物(touch DEBUG 开启;PIPELINE-LOG 是管线诊断日志,二者都不入库)
+DEBUG
+PIPELINE-LOG*.md
