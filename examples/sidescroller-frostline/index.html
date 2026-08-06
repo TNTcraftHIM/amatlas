@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh" data-ui="amatlas-dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Amatlas demo · 极夜霜线横版切片</title>
+<link rel="stylesheet" href="../../ui/amatlas-skins.css">
+<link rel="stylesheet" href="../../ui/touch-controls.css">
+<style>
+html[data-ui]{--amatlas-app-max:720px}#app{padding-top:24px}#sidescroller-stage{margin:14px 0;display:flex;flex-direction:column;align-items:center;gap:8px}#sidescroller-stage:empty{display:none}
+#sidescroller-stage canvas{width:min(100%,640px);height:auto;aspect-ratio:16/9;border:1px solid var(--amatlas-line);border-radius:8px;background:#111827;image-rendering:pixelated}
+.amatlas-sidescroller-hud{font:13px/1.5 var(--amatlas-ui-font,system-ui);color:var(--amatlas-muted)}.amatlas-sidescroller-controls{display:flex;gap:9px;align-items:center;justify-content:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<main id="app">
+  <div id="mapname"></div><h1 id="place"></h1><div id="look"></div>
+  <div id="sidescroller-stage"></div><div id="choices"></div><div id="status"></div>
+</main>
+<script src="../../core/runtime/engine-core.js"></script>
+<script src="../../presenters/present-dom.js"></script>
+<script src="../../modules/text-adventure/runtime/renderer.js"></script>
+<script src="../sidescroller/sidescroller-module.js"></script>
+<script src="world.js"></script>
+<script src="../../preset/boot.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

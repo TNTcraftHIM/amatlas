@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Amatlas maze3d 视觉素材 Gallery</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090d13;
+      --panel: #121923;
+      --panel-2: #182231;
+      --ink: #e9f0f7;
+      --muted: #9caebe;
+      --line: rgba(255,255,255,.11);
+      --accent: #f0b55a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: radial-gradient(circle at 20% 0%, #1c2838 0, var(--bg) 42rem); color: var(--ink); font: 14px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    header { position: sticky; top: 0; z-index: 5; padding: 18px clamp(16px, 4vw, 34px); background: linear-gradient(180deg, rgba(9,13,19,.97), rgba(9,13,19,.86)); border-bottom: 1px solid var(--line); backdrop-filter: blur(10px); }
+    h1 { margin: 0 0 6px; font-size: clamp(22px, 3vw, 34px); letter-spacing: .03em; }
+    header p { margin: 0; max-width: 980px; color: var(--muted); }
+    .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .links a { color: #ffe4b4; text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: rgba(255,255,255,.05); }
+    .links a:hover { border-color: rgba(240,181,90,.72); background: rgba(240,181,90,.14); }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .tabs button { border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; background: rgba(255,255,255,.05); color: var(--ink); cursor: pointer; }
+    .tabs button[aria-pressed="true"] { border-color: rgba(240,181,90,.72); background: rgba(240,181,90,.17); color: #ffe4b4; }
+    main { padding: 24px clamp(16px, 4vw, 34px) 44px; }
+    section { margin: 0 0 34px; }
+    h2 { margin: 0 0 8px; font-size: 20px; }
+    .section-note { margin: 0 0 14px; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+    .card { background: linear-gradient(180deg, var(--panel), #0e141d); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: 0 12px 34px rgba(0,0,0,.28); }
+    .shot { min-height: 150px; background: #05070b; display: grid; place-items: center; }
+    .shot > div { width: 100%; display: grid; place-items: center; }
+    .shot canvas { width: 100%; height: auto; image-rendering: pixelated; display: block; }
+    .meta { padding: 11px 12px 12px; border-top: 1px solid var(--line); }
+    .meta strong { display: block; font-size: 15px; }
+    .meta code { color: #ffd48a; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
+    .meta p { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+    details { margin-top: 9px; }
+    summary { color: #ffe4b4; cursor: pointer; }
+    pre { max-height: 280px; overflow: auto; padding: 10px; border: 1px solid var(--line); border-radius: 9px; background: #080c12; white-space: pre; }
+    .copy-maze { min-height: 36px; border: 1px solid var(--line); border-radius: 8px; padding: 6px 11px; background: var(--panel-2); color: var(--ink); cursor: pointer; }
+    .copy-status { margin-left: 8px; color: var(--muted); font-size: 12px; }
+    .hidden { display: none !important; }
+    .error { margin: 18px 0; padding: 12px; border: 1px solid #8d3030; border-radius: 10px; background: #2b1111; color: #ffd1d1; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>maze3d 视觉素材 Gallery</h1>
+    <p>这是统一 maze3d 入口附带的作者选材页:先从协调 Recipes 或 FPS Combat Families 选整套，再按需查主题、材质、装饰、机关和结构原子。每张卡都由同一 runtime 以 staticPreview:true + audio:false + controls:false 渲染真实首帧；可复制的是 maze 数据，不是页面装配代码。它不是新模块或公共契约。</p>
+    <p class="links"><a href="index.html">maze3d 统一入口</a><a href="references/maze3d-authoring.md">maze3d 作者手册</a><a href="audio-gallery.html">maze3d 声音试听 Gallery</a></p>
+    <nav class="tabs" aria-label="素材分类筛选"></nav>
+  </header>
+  <main id="gallery"></main>
+
+  <script src="../../core/runtime/engine-core.js"></script>
+  <script src="raycast-maze.js"></script>
+  <script src="gallery.js"></script>
+</body>
+</html>

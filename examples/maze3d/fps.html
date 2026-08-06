@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh" data-ui="amatlas-dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Amatlas maze3d · FPS 资源绕行玩家直达</title>
+<link rel="stylesheet" href="../../ui/amatlas-skins.css">
+<link rel="stylesheet" href="../../ui/touch-controls.css">
+<style>
+html[data-ui]{--amatlas-app-max:820px;--amatlas-accent:#55d6a7;--amatlas-accent-2:#f0b35a;--amatlas-body-font:system-ui,sans-serif;--amatlas-ui-font:system-ui,sans-serif}
+body{background:#080b0d;color:#e8edf0}
+#app{min-height:100dvh;padding:18px 20px calc(48px + env(safe-area-inset-bottom))}
+.player-brief{border-top:3px solid var(--amatlas-accent);border-bottom:1px solid var(--amatlas-line);padding:12px 0 14px;margin-bottom:10px}
+.eyebrow{margin:0 0 5px;color:var(--amatlas-accent);font:700 11px/1.4 var(--amatlas-ui-font);text-transform:uppercase}
+.player-brief h1{margin:0 0 8px;font:750 23px/1.2 var(--amatlas-ui-font);letter-spacing:0}
+.mission{margin:0;color:#d9e2e6;font:14px/1.55 var(--amatlas-ui-font)}
+.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;margin-top:12px;background:var(--amatlas-line)}
+.controls span{min-width:0;padding:8px 10px;background:#10161a;color:#cbd5da;font:12px/1.45 var(--amatlas-ui-font)}
+#plugin-bar{margin:0 0 8px}
+#mapname{font:650 11px/1.4 var(--amatlas-ui-font);text-transform:uppercase}
+#place{font:750 22px/1.25 var(--amatlas-ui-font);letter-spacing:0;color:#fff;margin:0 0 8px}
+#maze3d-stage{width:100%;margin:8px 0 14px;display:flex;flex-direction:column;align-items:center}
+#maze3d-stage .amatlas-maze-screen{position:relative;width:100%;aspect-ratio:16/10;background:#05080e;border:1px solid var(--amatlas-line);border-radius:6px;overflow:hidden;box-shadow:0 6px 28px rgba(0,0,0,.55)}
+#maze3d-stage canvas{display:block;width:100%;height:100%}
+#look>.line{margin:0 0 .65em}
+#choices{margin-top:18px}
+.choice{padding:12px 15px;font:14px/1.4 var(--amatlas-ui-font)}
+#status{font:12px var(--amatlas-ui-font);padding-top:12px}
+details{margin-top:22px;border-top:1px solid var(--amatlas-line);padding-top:10px;color:var(--amatlas-muted);font:12px/1.6 var(--amatlas-ui-font)}
+summary{cursor:pointer;color:#b9c5cb}
+details p{margin:8px 0 0}
+code{color:#ffd17c;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+@media(max-width:620px){#app{padding:12px 10px calc(40px + env(safe-area-inset-bottom))}.controls{grid-template-columns:1fr}.player-brief h1{font-size:20px}}
+</style>
+</head>
+<body>
+<main id="app">
+  <section class="player-brief" aria-labelledby="player-title">
+    <p class="eyebrow">maze3d · 玩家直达</p>
+    <h1 id="player-title">FPS 资源绕行生存场</h1>
+    <p class="mission">先向北侧支路绕行取得精确手枪 +3 弹药，再回到主轴拿近程霰弹枪；散射后按 1 切回精确手枪收尾，最后穿过尽头的发光 D。不取北侧弹药时，主轴资源最多造成 80 伤害，不足以清掉 100 HP 装甲；即使先耗尽，也能在同一轮返回支路恢复。初始画面处于待命；任一玩法输入才开始追逐，武器回稳前的开火不会缓冲。</p>
+    <div class="controls" aria-label="操作方式">
+      <span><strong>W / S</strong> 前进 / 后退；<strong>A / D</strong> 左右平移</span>
+      <span><strong>← / →</strong> 转向；<strong>Space</strong> 或“开火”射击</span>
+      <span>首次点击画面会开始追逐并锁定鼠标，但不会开枪</span>
+    </div>
+  </section>
+  <div id="plugin-bar"></div>
+  <div id="mapname"></div>
+  <h2 id="place"></h2>
+  <div id="maze3d-stage"></div>
+  <div id="scene"></div>
+  <div id="look"></div>
+  <div id="choices"></div>
+  <div id="status"></div>
+  <details>
+    <summary>作者边界</summary>
+    <p>本页不是新的 FPS 模块，也没有复制关卡：它加载正式 <code>raycast-maze.js</code> 与 <code>world.js</code>，薄装配只从同一 world 派生 <code>start=fps_range</code>。战斗仍是 <code>maze3d</code> 私有 recipe，不扩张 core、模块接口或公共 View。</p>
+  </details>
+</main>
+
+<script src="../../core/runtime/engine-core.js"></script>
+<script src="../../modules/text-adventure/runtime/renderer.js"></script>
+<script src="../../modules/tabletop/runtime/tabletop.js"></script>
+<script src="raycast-maze.js"></script>
+<script src="../../presenters/present-svg.js"></script>
+<script src="../../presenters/present-dom.js"></script>
+<script src="../../presenters/progressions.js"></script>
+<script src="../../presenters/compose-music.js"></script>
+<script src="../../presenters/present-audio.js"></script>
+<script src="../../plugins/inventory.js"></script>
+<script src="../../plugins/reset.js"></script>
+<script src="../../preset/boot.js"></script>
+<script src="world.js"></script>
+<script src="fps-game.js"></script>
+</body>
+</html>

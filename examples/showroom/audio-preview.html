@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Amatlas Audio Workbench</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070b11;
+      --panel: #111925;
+      --panel-2: #172232;
+      --ink: #e9f0f7;
+      --muted: #9caebe;
+      --line: rgba(255,255,255,.12);
+      --accent: #75c7ff;
+      --warm: #f0b55a;
+      --bad: #ff8a8a;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: radial-gradient(circle at 18% 0%, #1d2d3d 0, var(--bg) 44rem); color: var(--ink); font: 14px/1.58 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    header { padding: 18px clamp(16px, 4vw, 34px); background: linear-gradient(180deg, rgba(7,11,17,.97), rgba(7,11,17,.88)); border-bottom: 1px solid var(--line); }
+    h1 { margin: 0 0 6px; font-size: clamp(22px, 3vw, 34px); letter-spacing: .03em; }
+    header p { margin: 0; max-width: 1100px; color: var(--muted); }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .tabs button, .tool-btn, .card button, .amatlas-plugin-btn { border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; background: rgba(255,255,255,.05); color: var(--ink); cursor: pointer; }
+    .tabs button[aria-pressed="true"], .card.active button { border-color: rgba(117,199,255,.76); background: rgba(117,199,255,.17); color: #dff4ff; }
+    main { padding: 22px clamp(16px, 4vw, 34px) 48px; }
+    .console { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(280px, 680px); gap: 16px; align-items: start; margin-bottom: 18px; }
+    .panel { background: linear-gradient(180deg, var(--panel), #0d131c); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 14px 38px rgba(0,0,0,.28); overflow: hidden; }
+    .panel-body { padding: 14px 16px 16px; }
+    .panel h2 { margin: 0 0 8px; font-size: 18px; }
+    .panel p { margin: 7px 0; color: var(--muted); }
+    .now code, .card code { color: #ffd48a; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
+    .now code { white-space: pre-wrap; display: block; }
+    .tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+    #plugin-bar { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tool-btn.stop { border-color: rgba(255,138,138,.42); color: #ffd8d8; }
+    .stage { min-height: 210px; padding: 16px; }
+    #mapname { color: var(--accent); letter-spacing: .16em; font-size: 12px; text-transform: uppercase; opacity: .85; }
+    #place { margin: 4px 0 10px; font-size: 24px; }
+    #look .line, #look .event { margin: 0 0 8px; white-space: pre-wrap; }
+    #choices { display: none; }
+    .choice { border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; background: rgba(255,255,255,.05); color: var(--ink); cursor: pointer; }
+    .choice.locked, .choice:disabled { opacity: .52; cursor: not-allowed; }
+    #status { margin-top: 12px; color: var(--muted); font-size: 12px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 8px; }
+    .workbench { margin: 0 0 28px; }
+    .workbench .intro { margin: 0 0 14px; color: var(--muted); max-width: 1100px; }
+    #workbench-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+    .control-group { border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin: 0; background: rgba(255,255,255,.035); }
+    .control-group legend { padding: 0 6px; color: var(--accent); font-weight: 700; }
+    .control, .check-control { display: grid; gap: 4px; margin: 0 0 8px; color: var(--muted); font-size: 12px; }
+    .check-control { grid-template-columns: auto 1fr; align-items: center; }
+    .control select, .control input { width: 100%; border: 1px solid var(--line); border-radius: 9px; padding: 7px 8px; background: #0b111a; color: var(--ink); }
+    .workbench-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    section { margin: 0 0 32px; }
+    section h2 { margin: 0 0 8px; font-size: 20px; }
+    .section-note { margin: 0 0 14px; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(238px, 1fr)); gap: 13px; }
+    .card { background: linear-gradient(180deg, var(--panel), #0e141d); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: 0 12px 32px rgba(0,0,0,.24); }
+    .card.active { border-color: rgba(117,199,255,.7); box-shadow: 0 0 0 1px rgba(117,199,255,.22), 0 14px 38px rgba(0,0,0,.34); }
+    .card .meta { padding: 12px; }
+    .card strong { display: block; font-size: 15px; }
+    .card p { margin: 7px 0 10px; color: var(--muted); font-size: 12px; }
+    .badge { display: inline-block; margin-bottom: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 7px; color: var(--muted); font-size: 11px; letter-spacing: .04em; }
+    .hidden { display: none !important; }
+    .error { margin: 18px 0; padding: 12px; border: 1px solid #8d3030; border-radius: 10px; background: #2b1111; color: #ffd1d1; white-space: pre-wrap; }
+    @media (max-width: 840px) { .console { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Amatlas 通用音频工作台</h1>
+    <p>这是普通文字冒险、跑团和其它模块都能用的正式声音选材页:集中试听 `audio.music` 预设、`MusicSpec` 配方、timbre 乐器/低音、内置 MIDI 示例、`audio.ambient`、`audio.sfx` 和组合场景。它只展示公共 `audio` 意图,不是 maze3d 私有声音页,也不是 MIDI 上传工具;声音通过真实 Amatlas View 触发。</p>
+    <nav class="tabs" aria-label="声音分类筛选"></nav>
+  </header>
+
+  <main>
+    <div class="console">
+      <section class="panel now" aria-live="polite">
+        <div class="panel-body">
+          <h2 id="active-title">未启动试听</h2>
+          <p id="active-note">先选下方任一卡片,或在工作台组合 MusicSpec / timbre / bass / MIDI;浏览器通常需要一次点击或按键手势才会真正放声。</p>
+          <p><code id="active-code">无 active preview</code></p>
+          <div class="tools">
+            <button type="button" class="tool-btn stop" id="stop-preview">停止当前试听</button>
+            <div id="plugin-bar"></div>
+          </div>
+          <p class="hint">真实听感只能人工核;自动化只验证页面能加载、卡片能启动、切换会停掉旧 preview。若听不到,先确认浏览器标签页未静音。</p>
+        </div>
+      </section>
+      <section class="panel stage">
+        <div id="mapname"></div>
+        <h2 id="place"></h2>
+        <div id="look"></div>
+        <div id="choices"></div>
+        <div id="status"></div>
+      </section>
+    </div>
+
+    <section class="panel workbench">
+      <div class="panel-body">
+        <h2>构建一个 audio 意图</h2>
+        <p class="intro">这里不是新 API,只是把现有 `audio.music` 对象形态可视化:选 preset、调式、和弦、声部、timbre、ambient、sfx,点击播放后会写入一个真实 scene 节点再由 Amatlas 呈现器发声。生成音乐从第一段就是完整陈述，后续只在完整织体内部做轻回应、段尾峰值与收口呼吸；可以立即判断主体，也可继续听发展与循环接缝。</p>
+        <div id="workbench-controls"></div>
+        <div class="workbench-actions">
+          <button type="button" class="tool-btn" id="play-workbench-spec">试听完整音乐与短呼吸</button>
+          <button type="button" class="tool-btn" id="play-workbench-midi">播放内置 MIDI 示例</button>
+        </div>
+      </div>
+    </section>
+
+    <div id="audio-preview"></div>
+  </main>
+
+  <script src="../../core/runtime/engine-core.js"></script>
+  <script src="../../modules/text-adventure/runtime/renderer.js"></script>
+  <script src="../../presenters/present-dom.js"></script>
+  <script src="../../presenters/progressions.js"></script>
+  <script src="../../presenters/compose-music.js"></script>
+  <script src="../../presenters/midi-music.js"></script>
+  <script src="../../presenters/present-audio.js"></script>
+  <script src="../../preset/boot.js"></script>
+  <script src="audio-preview-world.js"></script>
+  <script src="audio-preview.js"></script>
+</body>
+</html>
